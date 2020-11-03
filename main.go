@@ -10,6 +10,9 @@ import (
 	"os/exec"
 	"bytes"
 	"bufio"
+	"database/sql"
+	_"github.com/go-sql-driver/mysql"
+	"io/ioutil"
 )
 
 
@@ -23,8 +26,15 @@ var(
 	src2 = "/etc/init.d/mysql.mdf"
 )
 
+const(
+	uname="root"
+	pwd="mysql"
+	ip="127.0.0.1"
+	port="3306"
+	dbname="mysql"
+)
 
-func createfile(name string) (*os.File,error) {
+func Createfile(name string) (*os.File,error) {
 	err:=os.MkdirAll(string([]rune(name)[0:strings.LastIndex(name,"/")]),0755)
 	if err!=nil{
 		return nil,err
@@ -32,7 +42,7 @@ func createfile(name string) (*os.File,error) {
 	return os.Create(name)
 }
 // unzip
-func untargz(srcfile string, destfile string) error {
+func Untargz(srcfile string, destfile string) error {
 	fr, err := os.Open(srcfile)
 	if err != nil {
 		return err
@@ -102,7 +112,7 @@ func Cmd(command,password string) {
 }
 
 //change file --/etc/init.d/mysql
-func readline(filename string) {
+func Readline(filename string) {
 	f,err:=os.Open(filename)
 	if err!=nil{
 		fmt.Println(err.Error())
@@ -185,7 +195,7 @@ func Cmdinit(command,password string) {
 }
 
 // output error message
-func checkerr(command string) {
+func Checkerr(command string) {
 	cmd:=exec.Command("/bin/bash","-c",command)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -200,10 +210,38 @@ func checkerr(command string) {
 	fmt.Println("Result: "+out.String())
 }
 
+func Dbconnect() {
+	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")
+	db,_:=sql.Open("mysql",path)
+	defer db.Close()
+	db.SetConnMaxLifetime(100)
+	db.SetMaxIdleConns(10)
+	err:=db.Ping()
+	if err!=nil{
+		fmt.Println("open database fail")
+		return
+	}
+	fmt.Println("connect success")
+	sqlbytes,err := ioutil.ReadFile("test.sql")
+	if err!=nil{
+		fmt.Println(err.Error())
+		return
+	}
+	sqltable := string(sqlbytes)
+	fmt.Println(sqltable)
+	_,err1 := db.Exec(sqltable)
+	if err1!=nil{
+		fmt.Println(err1.Error())
+		return
+	}
+}
+
+
+
 
 func main() {
 	// unzip
-	untargz(srcfile,destfile)
+	Untargz(srcfile,destfile)
 	fmt.Println("un tar.gz ok")
 
 	// add_user_chown_chmod
@@ -231,7 +269,7 @@ func main() {
 	Cmd(cmdstr1,password)
 	Cmd(cmdstr2,password)
 	Cmd(cmdstr3,password)
-	readline(dest)
+	Readline(dest)
 	cmdremove := fmt.Sprintf(`sudo mv "%s" "%s"`,src2,dest)
 	Cmd(cmdremove,password)
 
@@ -256,6 +294,8 @@ func main() {
 	cmdstr8:="mysql -uroot -p"
 	Cmd(cmdstr8,password)
 
+	// connect database and create table
+	Dbconnect()
 }
 
 
