@@ -5,7 +5,6 @@
       <root url="file:///opt/go/src/time" />
       <root url="file:///opt/go/src/bufio" />
       <root url="file:///opt/go/src/text" />
-      <root url="file://$PROJECT_DIR$/../learntwo" />
       <root url="file:///opt/go/src/expvar" />
       <root url="file:///opt/go/src/unicode" />
       <root url="file:///opt/go/src/errors" />
@@ -17,7 +16,6 @@
       <root url="file:///opt/go/src/bytes" />
       <root url="file:///opt/go/src/regexp" />
       <root url="file:///opt/go/src/go" />
-      <root url="file://$PROJECT_DIR$/../mysql" />
       <root url="file:///opt/go/src/container" />
       <root url="file:///opt/go/src/log" />
       <root url="file:///opt/go/src/builtin" />
@@ -55,7 +53,6 @@
       <root url="file:///opt/go/src/time" />
       <root url="file:///opt/go/src/bufio" />
       <root url="file:///opt/go/src/text" />
-      <root url="file://$PROJECT_DIR$/../learntwo" />
       <root url="file:///opt/go/src/expvar" />
       <root url="file:///opt/go/src/unicode" />
       <root url="file:///opt/go/src/errors" />
@@ -67,7 +64,6 @@
       <root url="file:///opt/go/src/bytes" />
       <root url="file:///opt/go/src/regexp" />
       <root url="file:///opt/go/src/go" />
-      <root url="file://$PROJECT_DIR$/../mysql" />
       <root url="file:///opt/go/src/container" />
       <root url="file:///opt/go/src/log" />
       <root url="file:///opt/go/src/builtin" />
