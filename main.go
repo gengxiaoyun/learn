@@ -21,7 +21,6 @@ var(
 	destfile = "/home/gengxy/mysql01/"
 	srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
 	mysql_dir = destfile+"mysql-5.7.31-linux-glibc2.12-x86_64/"
-	password = "mysql"
 	src1 = "my.cnf"
 	dest1 = "/etc/my.cnf"
 	src2 = mysql_dir+"support-files/mysql.server"
