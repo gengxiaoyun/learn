@@ -46,6 +46,7 @@
       <root url="file:///opt/go/src/internal" />
       <root url="file:///opt/go/src/plugin" />
       <root url="file:///opt/go/src/reflect" />
+      <root url="file://$PROJECT_DIR$/../github.com" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
@@ -94,6 +95,7 @@
       <root url="file:///opt/go/src/internal" />
       <root url="file:///opt/go/src/plugin" />
       <root url="file:///opt/go/src/reflect" />
+      <root url="file://$PROJECT_DIR$/../github.com" />
     </SOURCES>
     <excluded>
       <root url="file://$PROJECT_DIR$" />

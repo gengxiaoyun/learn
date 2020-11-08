@@ -314,7 +314,7 @@ func main() {
 	cmdremove := fmt.Sprintf(`sudo mv "%s" "%s"`,src3,dest2)
 	Cmd(cmdremove)
 
-	//// initialize
+	// initialize
 	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"data"
 	Checkerr(init_cmd)
 	chown := "sudo chown -R mysql:mysql "+mysql_dir+"data"
@@ -323,10 +323,6 @@ func main() {
 	Cmd(cmd_data)
 	mysql_err:="less "+mysql_dir+"data/mysql.err"
 	cmd_output(mysql_err)
-
-	// get temporary password
-	str_pd:= get_pd(mysql_dir+"data/mysql.err")
-	fmt.Println("temporary password: ",str_pd)
 
 	cmdstr4:="./mysql_ssl_rsa_setup --datadir="+mysql_dir+"data"
 	Checkerr(cmdstr4)
@@ -337,8 +333,12 @@ func main() {
 	cmdstr6:="ps -ef|grep mysql"
 	Checkerr(cmdstr6)
 
+	// get temporary password
+	str_pd:= get_pd(mysql_dir+"data/mysql.err")
+	fmt.Println("temporary password: ",str_pd)
+
 	// reset password
-	change_pd:="mysqladmin -u root -p"+str_pd+" password mysql"
+	change_pd:="mysqladmin -uroot -p"+str_pd+" password mysql"
 	Checkerr(change_pd)
 
 	// connect database and create table
