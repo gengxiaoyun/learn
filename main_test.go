@@ -58,7 +58,7 @@ func TestAdduser(t *testing.T) {
 
 
 func TestGet_pd(t *testing.T) {
-	pd:=get_pd(mysql_dir+"data/mysql.err")
+	pd:=Get_pd(mysql_dir+"data/mysql.err")
 	if pd==""{
 		t.Fatal("failed to get temporary password")
 	}
@@ -92,16 +92,15 @@ func TestDbconnect(t *testing.T) {
 	rows,err:=db.Query("select * from `test`;")
 	defer rows.Close()
 	if err!=nil{
-		t.Fatal("failed")
+		t.Errorf("failed")
 	}
 	for rows.Next() {
 		var id int
 		var name string
 		err:=rows.Scan(&id,&name)
 		if err!=nil{
-			t.Fatal("failed")
+			t.Errorf("failed")
 		}
 	}
-	t.Log("succeeded")
 }
 

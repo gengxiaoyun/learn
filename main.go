@@ -124,7 +124,7 @@ func Adduser(command,username,password string) {
 
 }
 
-func  cmd_output(command string) {
+func  Cmd_output(command string) {
 	cmd:=exec.Command("/bin/bash","-c",command)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -207,7 +207,7 @@ func Checkerr(command string) {
 	fmt.Println("initialize successful")
 }
 
-func get_pd(filename string) string{
+func Get_pd(filename string) string{
 	f,err:=os.Open(filename)
 	if err!=nil{
 		fmt.Println(err)
@@ -292,7 +292,7 @@ func main() {
 	// install_libaio
 	slibaio:="apt-cache search libaio"
 	ilibaio := "apt-get install libaio1"
-	cmd_output(slibaio)
+	Cmd_output(slibaio)
 	Cmd_root(ilibaio)
 
 	// my.cnf
@@ -303,42 +303,42 @@ func main() {
 	Cmd_root(cp_cmd2)
 
 	// add_path
-	cmdstr1 := "sudo chmod -R 777 "+dest2
-	cmdstr2 := "sudo touch "+src3
-	cmdstr3 := "sudo chmod -R 777 "+src3
-	Cmd(cmdstr1)
-	Cmd(cmdstr2)
-	Cmd(cmdstr3)
+	str_cmd1 := "sudo chmod -R 777 "+dest2
+	str_cmd2 := "sudo touch "+src3
+	str_cmd3 := "sudo chmod -R 777 "+src3
+	Cmd(str_cmd1)
+	Cmd(str_cmd2)
+	Cmd(str_cmd3)
 	Readline(dest2)
-	cmdremove := fmt.Sprintf(`sudo mv "%s" "%s"`,src3,dest2)
-	Cmd(cmdremove)
+	mv_cmd := fmt.Sprintf(`sudo mv "%s" "%s"`,src3,dest2)
+	Cmd(mv_cmd)
 
 	// initialize
 	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"data"
 	Checkerr(init_cmd)
 	chown := "sudo chown -R mysql:mysql "+mysql_dir+"data"
 	Cmd(chown)
-	cmd_data := "sudo chmod -R 777 "+mysql_dir+"data"
-	Cmd(cmd_data)
-	mysql_err:="less "+mysql_dir+"data/mysql.err"
-	cmd_output(mysql_err)
+	data_cmd := "sudo chmod -R 777 "+mysql_dir+"data"
+	Cmd(data_cmd)
+	mysql_err_cmd:="less "+mysql_dir+"data/mysql.err"
+	Cmd_output(mysql_err_cmd)
 
-	cmdstr4:="./mysql_ssl_rsa_setup --datadir="+mysql_dir+"data"
-	Checkerr(cmdstr4)
+	str_cmd4:="./mysql_ssl_rsa_setup --datadir="+mysql_dir+"data"
+	Checkerr(str_cmd4)
 
-	cmdstr5:="./mysqld_safe --user=mysql &"
-	Checkerr(cmdstr5)
+	str_cmd5:="./mysqld_safe --user=mysql &"
+	Checkerr(str_cmd5)
 
-	cmdstr6:="ps -ef|grep mysql"
-	Checkerr(cmdstr6)
+	str_cmd6:="ps -ef|grep mysql"
+	Checkerr(str_cmd6)
 
 	// get temporary password
-	str_pd:= get_pd(mysql_dir+"data/mysql.err")
+	str_pd:= Get_pd(mysql_dir+"data/mysql.err")
 	fmt.Println("temporary password: ",str_pd)
 
 	// reset password
-	change_pd:="mysqladmin -uroot -p"+str_pd+" password mysql"
-	Checkerr(change_pd)
+	change_pd_cmd:="mysqladmin -uroot -p"+str_pd+" password mysql"
+	Checkerr(change_pd_cmd)
 
 	// connect database and create table
 	Dbconnect()
