@@ -1,1 +1,55 @@
 # learn
+
+This project shows how to install mysql using go
+======
+
+prepare
+------
+###### you must download a mysql installation package from the official website. this is my folder.
+srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
+
+###### Configure environment variables. Add the following two lines to the profile file.
+
+_$ vi /etc/profile_
+
+export MYSQL_HOME=/usr/local/mysql
+<br>export PATH=$MYSQL_HOME/bin:$PATH
+
+main.go
+---
+###### first, decompress the compressed package through the following function.
+
+Untargz()  
+
+###### second, add group and user and assign permissions to folders by calling cmd commands.
+
+Cmd_root(); Adduser(); Cmd()
+
+###### third, you must get the mysql installation dependency package libaio by calling cmd commands.
+
+###### fourth, modify the configuration file. 
+eg:  /etc/my.cnf and /etc/init.d/mysql
+
+###### finally, initialize. After changing the temporary password, you can connect to the database to create a table and insert data.
+
+Dbconnect()
+
+main_test.go
+---
+This go file is mainly for unit testing the functions in the main file.
+
+command.go
+-----
+cmd command functions.
+
+command_test.go
+----
+This go file is mainly for unit testing the functions in the command file.
+
+dbsql.go
+----
+connect to the database and create a table.
+
+testfile
+----
+Some test files.

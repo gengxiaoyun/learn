@@ -6,36 +6,29 @@ import (
 	"fmt"
 	"strings"
 	"os"
-	"database/sql"
 	"os/exec"
 	"bytes"
 )
 
+var(
+	file1="testfile/unzipfile/"
+	file2="testfile/unzipfile/mysql-5.7.31-linux-glibc2.12-x86_64"
+	file3="testfile/aaa"
+	file4="testfile/aaa.mdf"
+
+)
+
 func TestUntargz(t *testing.T) {
-	Untargz(srcfile,"unzipfile/")
-	_,err:=os.Stat("unzipfile/mysql-5.7.31-linux-glibc2.12-x86_64")
-	if os.IsNotExist(err) {
+	err:=os.Mkdir(file1,os.ModePerm)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	Untargz(srcfile,file1)
+	_,err1:=os.Stat(file2)
+	if os.IsNotExist(err1) {
 		t.Fatal("failed")
 	}
 	t.Log("succeeded")
-}
-
-func TestCmd_root(t *testing.T) {
-	group := "groupadd testUser"
-	Cmd_root(group)
-	command:="cat /etc/group | grep testUser"
-	cmd:=exec.Command("/bin/bash","-c",command)
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout=&out
-	cmd.Stderr=&stderr
-	err:=cmd.Run()
-	if err != nil{
-		fmt.Println(fmt.Sprint(err)+": "+stderr.String())
-	}
-	if out.String()==""{
-		t.Errorf("failed")
-	}
 }
 
 func TestAdduser(t *testing.T) {
@@ -56,7 +49,6 @@ func TestAdduser(t *testing.T) {
 	}
 }
 
-
 func TestGet_pd(t *testing.T) {
 	pd:=Get_pd(mysql_dir+"data/mysql.err")
 	if pd==""{
@@ -66,8 +58,13 @@ func TestGet_pd(t *testing.T) {
 }
 
 func TestReadline(t *testing.T) {
-	Readline("aaa")
-	bytes,err:=ioutil.ReadFile("aaa.mdf")
+	out,err:=os.Create(file4)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	defer out.Close()
+	Readline(file3)
+	bytes,err:=ioutil.ReadFile(file4)
 	if err!=nil{
 		fmt.Println(err)
 	}
@@ -77,30 +74,5 @@ func TestReadline(t *testing.T) {
 		t.Fatal("failed")
 	}
 	t.Log("succeeded")
-}
-
-
-func TestDbconnect(t *testing.T) {
-	Dbconnect()
-	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8"},"")
-	db,_:=sql.Open("mysql",path)
-	defer db.Close()
-	err:=db.Ping()
-	if err!=nil{
-		fmt.Println(err)
-	}
-	rows,err:=db.Query("select * from `test`;")
-	defer rows.Close()
-	if err!=nil{
-		t.Errorf("failed")
-	}
-	for rows.Next() {
-		var id int
-		var name string
-		err:=rows.Scan(&id,&name)
-		if err!=nil{
-			t.Errorf("failed")
-		}
-	}
 }
 
