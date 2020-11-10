@@ -11,8 +11,8 @@ import (
 	"bytes"
 	"bufio"
 	"regexp"
-	"learn/linux"
-	"learn/dbsql"
+	"github.com/gengxiaoyun/learn/linux"
+	"github.com/gengxiaoyun/learn/dbsql"
 )
 
 var(
