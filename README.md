@@ -3,18 +3,6 @@
 This project shows how to install mysql using go
 ======
 
-prepare
-------
-###### you must download a mysql installation package from the official website. this is my folder.
-srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
-
-###### Configure environment variables. Add the following two lines to the profile file.
-
-_$ vi /etc/profile_
-
-export MYSQL_HOME=/usr/local/mysql
-<br>export PATH=$MYSQL_HOME/bin:$PATH
-
 main.go
 ---
 ###### first, decompress the compressed package through the following function.
@@ -53,3 +41,30 @@ connect to the database and create a table.
 testfile
 ----
 Some test files.
+
+### Now, let's start the installation.
+
+prepare
+------
+###### you must download a mysql installation package from the official website. this is my folder.
+srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
+
+###### Configure environment variables. Add the following two lines to the profile file.
+
+_$ vi /etc/profile_
+
+export MYSQL_HOME=/usr/local/mysql
+<br>export PATH=$MYSQL_HOME/bin:$PATH
+
+_$ source /etc/profile_
+
+###### Enter the project working directory under GOPATH.
+
+_$ cd $GOPATH/src/learn_
+_<br>$ go run main.go_
+
+###### During the running of the program, you may be required to enter the root password.
+
+###### unit tests
+
+_$ go test_
