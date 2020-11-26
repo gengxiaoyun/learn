@@ -13,19 +13,27 @@ import (
 	"regexp"
 	"github.com/gengxiaoyun/learn/linux"
 	"github.com/gengxiaoyun/learn/dbsql"
+	//"learn/linux"
+	//"learn/dbsql"
 )
 
 var(
 	destfile = "/home/gengxy/mysql01/"
 	srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
 	mysql_dir = destfile+"mysql-5.7.31-linux-glibc2.12-x86_64/"
-	src1 = "my.cnf"
+	src1 = "prepare/my.cnf"
 	dest1 = "/etc/my.cnf"
 	src2 = mysql_dir+"support-files/mysql.server"
 	dest2 = "/etc/init.d/mysql"
 	src3 = "/etc/init.d/mysql.mdf"
 	dir = ""
 	dir_init = mysql_dir+"bin/"
+
+	port="3306"
+	port_2="3307"
+
+	sql_file="dbsql/test.sql"
+	sql_file2="dbsql/test2.sql"
 )
 
 // create file
@@ -137,7 +145,7 @@ func Readline(filename string) {
 
 		}
 		if newline=="datadir="{
-			newline = strings.Replace(newline,"datadir=","datadir=/home/gengxy/mysql01/mysql-5.7.31-linux-glibc2.12-x86_64/data/",1)
+			newline = strings.Replace(newline,"datadir=","datadir=/home/gengxy/mysql01/mysql-5.7.31-linux-glibc2.12-x86_64/mysqld_multi/mysqld3306/data/",1)
 		}
 		_,err1:=out.WriteString(newline+"\n")
 		if err1!=nil{
@@ -181,6 +189,8 @@ func main() {
 	linux.Cmd_root(group)
 	user := "sudo useradd -r -g mysql mysql"
 	Adduser(user,"mysql","user")
+	mk_cmd := "sudo mkdir -p "+mysql_dir+"mysqld_multi/mysqld3306/"
+	linux.Cmd(mk_cmd,dir)
 	chown1 := "sudo chown -R mysql:mysql "+mysql_dir
 	linux.Cmd(chown1,dir)
 	chown2 := "sudo chown -R mysql "+mysql_dir
@@ -212,17 +222,19 @@ func main() {
 	mv_cmd := fmt.Sprintf(`sudo mv "%s" "%s"`,src3,dest2)
 	linux.Cmd(mv_cmd,dir)
 
+
+
 	// initialize
-	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"data"
+	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"mysqld_multi/mysqld3306/data/"
 	linux.Cmd(init_cmd,dir_init)
-	chown := "sudo chown -R mysql:mysql "+mysql_dir+"data"
+	chown := "sudo chown -R mysql:mysql "+mysql_dir+"mysqld_multi/mysqld3306/data"
 	linux.Cmd(chown,dir)
-	data_cmd := "sudo chmod -R 777 "+mysql_dir+"data"
+	data_cmd := "sudo chmod -R 777 "+mysql_dir+"mysqld_multi/mysqld3306/data"
 	linux.Cmd(data_cmd,dir)
-	mysql_err_cmd:="less "+mysql_dir+"data/mysql.err"
+	mysql_err_cmd:="less "+mysql_dir+"mysqld_multi/mysqld3306/data/mysql.err"
 	linux.Cmd(mysql_err_cmd,dir)
 
-	str_cmd4:="./mysql_ssl_rsa_setup --datadir="+mysql_dir+"data"
+	str_cmd4:="./mysql_ssl_rsa_setup --datadir="+mysql_dir+"mysqld_multi/mysqld3306/data"
 	linux.Cmd(str_cmd4,dir_init)
 
 	str_cmd5:="./mysqld_safe --user=mysql &"
@@ -232,7 +244,7 @@ func main() {
 	linux.Cmd(str_cmd6,dir_init)
 
 	// get temporary password
-	str_pd:= Get_pd(mysql_dir+"data/mysql.err")
+	str_pd:= Get_pd(mysql_dir+"mysqld_multi/mysqld3306/data/mysql.err")
 	fmt.Println("temporary password: ",str_pd)
 
 	// reset password
@@ -240,6 +252,27 @@ func main() {
 	linux.Cmd(change_pd_cmd,dir_init)
 
 	// connect database and create table
-	dbsql.Dbconnect()
+	dbsql.Dbconnect(port,sql_file)
+
+	stop_cmd := "mysqld_multi stop 3306"
+	linux.Cmd(stop_cmd,dir_init)
+	cd_cmd := "cd "+mysql_dir+"mysqld_multi"
+	linux.Cmd(cd_cmd,dir)
+	copy_cmd:="sudo cp –r mysqld3306 mysqld3307"
+	linux.Cmd(copy_cmd,dir)
+	//"chown –R mysql:mysql mysqld3307"
+	rm_cmd:="sudo rm –f mysqld3307/data/auto.cnf"
+	linux.Cmd(rm_cmd,dir)
+	start_cmd:="mysqld_multi start 3306,3307"
+	linux.Cmd(start_cmd,dir_init)
+	report_cmd:="mysqld_multi report"
+	linux.Cmd(report_cmd,dir_init)
+
+	dbsql.Dbconnect(port_2,sql_file2)
+
+
+	//mysql –uroot –p –S /data/mysql/mysqld_multi/mysqld3306/data/mysql.sock
+	//mysql –uroot –p –S /data/mysql/mysqld_multi/mysqld3307/data/mysql.sock
+
 
 }

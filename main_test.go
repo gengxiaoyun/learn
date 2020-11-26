@@ -50,7 +50,7 @@ func TestAdduser(t *testing.T) {
 }
 
 func TestGet_pd(t *testing.T) {
-	pd:=Get_pd(mysql_dir+"data/mysql.err")
+	pd:=Get_pd(mysql_dir+"mysqld_multi/mysqld3306/data/mysql.err")
 	if pd==""{
 		t.Fatal("failed to get temporary password")
 	}

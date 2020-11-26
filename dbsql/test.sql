@@ -1,4 +1,6 @@
 GRANT ALL PRIVILEGES ON *.* TO `root`@`%` IDENTIFIED BY 'mysql' WITH GRANT OPTION;
+GRANT SHUTDOWN ON *.* TO `admin`@`localhost` identified by 'zh3p8ch2we';
+grant replication slave, replication client on *.* to `replication`@`%` identified by 'mysql';
 FLUSH PRIVILEGES;
 drop table if exists `test`;
 create table `test`(

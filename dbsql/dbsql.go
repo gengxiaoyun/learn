@@ -11,12 +11,13 @@ import (
 const(
 	uname="root"
 	pwd="mysql"
-	ip="127.0.0.1"
-	port="3306"
+	//ip="127.0.0.1"
+	ip="192.168.186.130"
 	dbname="mysql"
 )
 
-func Dbconnect() {
+
+func Dbconnect(port,file string) {
 	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")
 	db,_:=sql.Open("mysql",path)
 	defer db.Close()
@@ -24,11 +25,11 @@ func Dbconnect() {
 	db.SetMaxIdleConns(10)
 	err:=db.Ping()
 	if err!=nil{
-		fmt.Println("open database fail")
+		fmt.Println("open database fail",err.Error())
 		return
 	}
 	fmt.Println("connect success")
-	sqlbytes,err := ioutil.ReadFile("test.sql")
+	sqlbytes,err := ioutil.ReadFile(file)
 	if err!=nil{
 		fmt.Println(err.Error())
 		return
