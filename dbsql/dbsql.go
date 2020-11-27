@@ -11,11 +11,9 @@ import (
 const(
 	uname="root"
 	pwd="mysql"
-	//ip="127.0.0.1"
-	ip="192.168.186.130"
+	ip="127.0.0.1"
 	dbname="mysql"
 )
-
 
 func Dbconnect(port,file string) {
 	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")

@@ -13,8 +13,8 @@ import (
 	"regexp"
 	"github.com/gengxiaoyun/learn/linux"
 	"github.com/gengxiaoyun/learn/dbsql"
-	//"learn/linux"
 	//"learn/dbsql"
+	//"learn/linux"
 )
 
 var(
@@ -28,12 +28,16 @@ var(
 	src3 = "/etc/init.d/mysql.mdf"
 	dir = ""
 	dir_init = mysql_dir+"bin/"
+	dir_cp = mysql_dir+"mysqld_multi/"
 
 	port="3306"
 	port_2="3307"
 
 	sql_file="dbsql/test.sql"
 	sql_file2="dbsql/test2.sql"
+
+	mysqlfile=dir_cp+"mysqld3306"
+	mysqlfile2=dir_cp+"mysqld3307"
 )
 
 // create file
@@ -222,10 +226,8 @@ func main() {
 	mv_cmd := fmt.Sprintf(`sudo mv "%s" "%s"`,src3,dest2)
 	linux.Cmd(mv_cmd,dir)
 
-
-
 	// initialize
-	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"mysqld_multi/mysqld3306/data/"
+	init_cmd:="./mysqld --initialize --user=mysql --basedir="+mysql_dir+" --datadir="+mysql_dir+"mysqld_multi/mysqld3306/data/ --log-error="+mysql_dir+"mysqld_multi/mysqld3306/data/mysql.err"
 	linux.Cmd(init_cmd,dir_init)
 	chown := "sudo chown -R mysql:mysql "+mysql_dir+"mysqld_multi/mysqld3306/data"
 	linux.Cmd(chown,dir)
@@ -256,23 +258,20 @@ func main() {
 
 	stop_cmd := "mysqld_multi stop 3306"
 	linux.Cmd(stop_cmd,dir_init)
-	cd_cmd := "cd "+mysql_dir+"mysqld_multi"
-	linux.Cmd(cd_cmd,dir)
-	copy_cmd:="sudo cp –r mysqld3306 mysqld3307"
+
+	copy_cmd := fmt.Sprintf(`cp -r "%s" "%s"`,mysqlfile,mysqlfile2)
 	linux.Cmd(copy_cmd,dir)
-	//"chown –R mysql:mysql mysqld3307"
-	rm_cmd:="sudo rm –f mysqld3307/data/auto.cnf"
+
+	rm_cmd:="sudo rm -rf "+mysqlfile2+"/data/auto.cnf"
 	linux.Cmd(rm_cmd,dir)
+
 	start_cmd:="mysqld_multi start 3306,3307"
 	linux.Cmd(start_cmd,dir_init)
+
+	// time_different!!!!!
 	report_cmd:="mysqld_multi report"
 	linux.Cmd(report_cmd,dir_init)
 
 	dbsql.Dbconnect(port_2,sql_file2)
-
-
-	//mysql –uroot –p –S /data/mysql/mysqld_multi/mysqld3306/data/mysql.sock
-	//mysql –uroot –p –S /data/mysql/mysqld_multi/mysqld3307/data/mysql.sock
-
 
 }
