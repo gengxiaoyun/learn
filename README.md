@@ -18,7 +18,7 @@ Cmd_root(); Adduser(); Cmd()
 ###### fourth, modify the configuration file. 
 eg:  /etc/my.cnf and /etc/init.d/mysql
 
-###### finally, initialize. After changing the temporary password, you can connect to the database to create a table and insert data.
+###### finally, initialize. After changing the temporary password, you can connect to the database to create a table and insert data. what's more, build a master-slave environment.
 
 Dbconnect()
 

@@ -15,6 +15,7 @@ const(
 	dbname="mysql"
 )
 
+
 func Dbconnect(port,file string) {
 	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")
 	db,_:=sql.Open("mysql",path)

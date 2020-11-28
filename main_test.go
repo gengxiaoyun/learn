@@ -10,12 +10,11 @@ import (
 	"bytes"
 )
 
-var(
+const(
 	file1="testfile/unzipfile/"
 	file2="testfile/unzipfile/mysql-5.7.31-linux-glibc2.12-x86_64"
 	file3="testfile/aaa"
 	file4="testfile/aaa.mdf"
-
 )
 
 func TestUntargz(t *testing.T) {
@@ -58,6 +57,12 @@ func TestGet_pd(t *testing.T) {
 }
 
 func TestReadline(t *testing.T) {
+	if _, err := os.Stat(file4); os.IsExist(err) {
+		err1:=os.Remove(file4)
+		if err1!=nil{
+			fmt.Println(err1.Error())
+		}
+	}
 	out,err:=os.Create(file4)
 	if err!=nil{
 		fmt.Println(err)

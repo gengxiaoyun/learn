@@ -11,16 +11,20 @@ import (
 	"bytes"
 	"bufio"
 	"regexp"
-	"github.com/gengxiaoyun/learn/linux"
-	"github.com/gengxiaoyun/learn/dbsql"
-	//"learn/dbsql"
-	//"learn/linux"
+	//"github.com/gengxiaoyun/learn/linux"
+	//"github.com/gengxiaoyun/learn/prepare"
+	//"github.com/gengxiaoyun/learn/dbsql"
+	"learn/linux"
+	"learn/prepare"
+	"time"
+	"learn/dbsql"
 )
 
-var(
+const(
 	destfile = "/home/gengxy/mysql01/"
 	srcfile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
 	mysql_dir = destfile+"mysql-5.7.31-linux-glibc2.12-x86_64/"
+	pathtmp = "prepare/my.cnf001"
 	src1 = "prepare/my.cnf"
 	dest1 = "/etc/my.cnf"
 	src2 = mysql_dir+"support-files/mysql.server"
@@ -30,14 +34,15 @@ var(
 	dir_init = mysql_dir+"bin/"
 	dir_cp = mysql_dir+"mysqld_multi/"
 
-	port="3306"
-	port_2="3307"
+	port = "3306"
+	port_2 = "3307"
 
-	sql_file="dbsql/test.sql"
-	sql_file2="dbsql/test2.sql"
+	sql_file = "dbsql/test.sql"
+	sql_file2 = "dbsql/test2.sql"
+	sql_file3 = "dbsql/test3.sql"
 
-	mysqlfile=dir_cp+"mysqld3306"
-	mysqlfile2=dir_cp+"mysqld3307"
+	mysqlfile = dir_cp+"mysqld3306"
+	mysqlfile2 = dir_cp+"mysqld3307"
 )
 
 // create file
@@ -208,7 +213,13 @@ func main() {
 	ilibaio := "apt-get install libaio1"
 	linux.Cmd_root(ilibaio)
 
-	// my.cnf
+	// change my.cnf
+	err:=prepare.Changefile(src1,pathtmp)
+	if err!=nil{
+		fmt.Println(err.Error())
+	}
+
+	// copy my.cnf
 	cp_cmd1 := fmt.Sprintf(`cp "%s" "%s"`,src1,dest1)
 	linux.Cmd_root(cp_cmd1)
 	// mysql.server->mysql
@@ -268,10 +279,11 @@ func main() {
 	start_cmd:="mysqld_multi start 3306,3307"
 	linux.Cmd(start_cmd,dir_init)
 
-	// time_different!!!!!
+	time.Sleep(time.Duration(3)*time.Second)
+
 	report_cmd:="mysqld_multi report"
 	linux.Cmd(report_cmd,dir_init)
 
+	dbsql.Dbconnect(port,sql_file3)
 	dbsql.Dbconnect(port_2,sql_file2)
-
 }

@@ -7,8 +7,13 @@ import (
 	"testing"
 )
 
+const(
+	port="3306"
+	sql_file="dbsql/test.sql"
+)
+
 func TestDbconnect(t *testing.T) {
-	Dbconnect()
+	Dbconnect(port,sql_file)
 	path:=strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8"},"")
 	db,_:=sql.Open("mysql",path)
 	defer db.Close()
