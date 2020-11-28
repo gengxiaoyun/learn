@@ -11,13 +11,9 @@ import (
 	"bytes"
 	"bufio"
 	"regexp"
-	//"github.com/gengxiaoyun/learn/linux"
-	//"github.com/gengxiaoyun/learn/prepare"
-	//"github.com/gengxiaoyun/learn/dbsql"
-	"learn/linux"
-	"learn/prepare"
-	"time"
-	"learn/dbsql"
+	"github.com/gengxiaoyun/learn/linux"
+	"github.com/gengxiaoyun/learn/prepare"
+	"github.com/gengxiaoyun/learn/dbsql"
 )
 
 const(
