@@ -3,14 +3,21 @@ package prepare
 import "testing"
 
 const(
-	filename = "github.com/gengxiaoyun/learn/testfile/bbb"
-	pathtmp = "github.com/gengxiaoyun/learn/testfile/bbb001"
+	filename = "/home/gengxy/Goproject/src/learn/testfile/bbb"
+	pathTmp = "/home/gengxy/Goproject/src/learn/testfile/bbb001"
+	file = "/home/gengxy/Goproject/src/learn/testfile/bbbb"
 )
 
-func TestChangefile(t *testing.T) {
-	err:=Changefile(filename,pathtmp)
+func TestChangeConfFile(t *testing.T) {
+	err := ChangeConfFile(filename,pathTmp)
 	if err!=nil{
 		t.Fatal("failed")
 	}
-	t.Log("succeeded")
+}
+
+func TestCopyConfFile(t *testing.T) {
+	err := CopyConfFile(filename,file)
+	if err!=nil{
+		t.Fatal("failed")
+	}
 }

@@ -9,78 +9,91 @@ import(
 	"io"
 	"math"
 	"strconv"
+	"learn/mylinux"
 )
 
-func GetMemPercent() (string,string,string) {
-	memInfo,err:=mem.VirtualMemory()
-	if err!=nil{
-		fmt.Println(err)
+
+func GetMemPercent() (string,string,string,error) {
+	memInfo,err := mem.VirtualMemory()
+	if err != nil{
+		return nil,nil,nil,err
 	}
 	var a,b int
 	a = int(math.Floor(float64(memInfo.Total)/float64(1024*1024*1024)+0.5))
-	switch a{
+	switch a {
 	case 1:
-		b=8
+		b = 8
 	case 2:
-		b=16
+		b = 16
 	case 3:
-		b=32
+		b = 32
 	default:
-		b=64
+		b = 64
 	}
-	c:=strconv.Itoa(int(math.Exp2(float64(int(math.Log2(float64(memInfo.Total) * 0.75 /float64(1024*1024)))))))
-	d:=strconv.Itoa(int(math.Exp2(float64(int(math.Log2(float64(memInfo.Available) * 0.3 / float64(1024*1024)))))))
-	return strconv.Itoa(b),c,d
+	c := strconv.Itoa(int(math.Exp2(float64(int(math.Log2(float64(memInfo.Total) * 0.75 /float64(1024*1024)))))))
+	d := strconv.Itoa(int(math.Exp2(float64(int(math.Log2(float64(memInfo.Available) * 0.3 / float64(1024*1024)))))))
+	return strconv.Itoa(b),c,d,nil
 }
 
-func Changefile(filename,pathtmp string) error {
-	b,c,d:=GetMemPercent()
-	f,err:=os.Open(filename)
-	if err!=nil{
-		fmt.Println(err.Error())
+func ChangeConfFile(srcCnf,pathTmp string) error {
+	b,c,d,err := GetMemPercent()
+	if err != nil{
+		return err
+	}
+	f,err := os.Open(srcCnf)
+	if err != nil{
 		return err
 	}
 	defer f.Close()
-	out,err:=os.OpenFile(pathtmp, os.O_RDWR|os.O_CREATE, 0777)
-	if err!=nil{
-		fmt.Println(err.Error())
+	out,err := os.OpenFile(pathTmp, os.O_RDWR|os.O_CREATE, 0777)
+	if err != nil{
 		return err
 	}
 	defer out.Close()
-	buf:=bufio.NewReader(f)
-	newline:=""
+	buf := bufio.NewReader(f)
+	newline := ""
 	for {
-		line,_,err:=buf.ReadLine()
-		if err==io.EOF{
+		line,_,err := buf.ReadLine()
+		if err == io.EOF{
 			break
 		}
-		if err!=nil{
-			fmt.Println(err.Error())
+		if err != nil{
+			return err
 		}
 		newline = string(line)
-		if newline=="thread_cache_size=16"{
+		if newline == "thread_cache_size=16"{
 			newline = strings.Replace(newline,"16",b,1)
 		}
-		if newline=="innodb_buffer_pool_size=512M"{
+		if newline == "innodb_buffer_pool_size=512M"{
 			newline = strings.Replace(newline,"512",c,1)
 		}
-		if newline=="key_buffer_size=16M" {
+		if newline == "key_buffer_size=16M" {
 			newline = strings.Replace(newline, "16", d, 1)
 
 		}
-		_,err1:=out.WriteString(newline+"\n")
-		if err1!=nil{
-			fmt.Println(err1.Error())
+		_,err = out.WriteString(newline+"\n")
+		if err != nil{
 			return err
 		}
 	}
-	err1:=os.Remove(filename)
-	if err1!=nil{
-		fmt.Println(err1.Error())
+	err = os.Remove(srcCnf)
+	if err != nil{
+		return err
 	}
-	err2:=os.Rename(pathtmp,filename)
-	if err2!=nil{
-		fmt.Println(err2.Error())
+	err = os.Rename(pathTmp,srcCnf)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
+// copy my.cnf
+func CopyConfFile(srcCnf,destCnf string) error {
+	cpCmd := fmt.Sprintf(`cp "%s" "%s"`, srcCnf, destCnf)
+	err := mylinux.CmdRoot(cpCmd)
+	if err != nil{
+		return err
 	}
 	return nil
 }

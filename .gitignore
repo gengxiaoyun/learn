@@ -9,6 +9,11 @@
 # Test binary, build with `go test -c`
 *.test
 
+basic
+initmysql
+masterslave
+MyFlag
+prepare
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
