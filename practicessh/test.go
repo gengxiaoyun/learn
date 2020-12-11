@@ -163,8 +163,8 @@ var (
 	m = "skip-host-cache"
 	n = "skip-name-resolve"
 
-	sText = "plugin_load=rpl_semi_sync_master=semi_sync_master.so;rpl_semi_sync_slave=semi_slave.so"
-	news= "plugin_load=\"rpl_semi_sync_master=semi_sync_master.so;rpl_semi_sync_slave=semi_slave.so\""
+	sText = "plugin_load=rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so"
+	news= "plugin_load=\"rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so\""
 	pText = "[mysqld]"
 
 	filename = "./my.cnf"

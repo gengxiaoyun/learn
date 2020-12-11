@@ -205,6 +205,9 @@ func StartMysql() error{
 					fmt.Println(err.Error())
 					return err
 				}
+
+
+
 				_, _, err = sshConn.ExecuteCommand(startCommand+arr[i][1])
 				if err != nil{
 					fmt.Println(err.Error())
@@ -218,6 +221,10 @@ func StartMysql() error{
 				}
 				log.Println("slave DbConnect succeedd")
 				fmt.Println("slave DbConnect succeedd")
+
+
+
+
 
 			} else {
 				err = sshConn.CopyToRemote(srcCnfFile,destCnfFile)
