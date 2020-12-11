@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"archive/tar"
 	"bufio"
+	"time"
 )
 
 const (
@@ -23,8 +24,12 @@ const (
 	//ip="127.0.0.1"
 	dbname="mysql"
 
-	stopCommand = "mysqld_multi stop "
-	startCommand = "mysqld_multi start "
+	mysqlPassword = "mysql"
+	changePdCommand = "/usr/local/mysql/bin/mysqladmin -uroot -p"
+
+	stopCommand = "/usr/local/mysql/bin/mysqld_multi stop "
+	startCommand = "/usr/local/mysql/bin/mysqld_multi start "
+
 )
 
 
@@ -123,7 +128,7 @@ func InstallTool(sshConn *linux.MySSHConn,sLib,iLib string) error {
 	return nil
 }
 
-func ChangeMysqlFile(filename,dataDir string) error {
+func ChangeMysqlServerFile(filename,dataDir string) error {
 	f,err := os.Open(filename)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -170,7 +175,7 @@ func ChangeMysqlFile(filename,dataDir string) error {
 	return nil
 }
 
-func ChangeFile(sshConn *linux.MySSHConn,DbUser,DbGroup,file string) error {
+func OwnAndMod(sshConn *linux.MySSHConn,DbUser,DbGroup,file string) error {
 
 	err = MyOwn(sshConn,DbUser,DbGroup,file)
 	if err != nil{
@@ -205,7 +210,7 @@ func CheckPath(sshConn *linux.MySSHConn,path,mkCmd string) error {
 }
 
 func CreateSomeDir(sshConn *linux.MySSHConn,dataDir,port,DbUser,DbGroup string) error {
-
+	// every time
 	mkCmd := "sudo mkdir -p " + dataDir
 	err := CheckPath(sshConn,dataDir,mkCmd)
 	if err != nil{
@@ -246,20 +251,23 @@ func CreateSomeDir(sshConn *linux.MySSHConn,dataDir,port,DbUser,DbGroup string) 
 	return nil
 }
 
-func PrepareWork(sshConn *linux.MySSHConn,fileS,fileD,cmdChangeProfile,cmdSource,cmdGroup,cmdUser,
-	dataDir,port,DbUser,DbGroup,sLib,iLib string) error{
-	err = sshConn.CopyToRemote(fileS,fileD)
+func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmdGroup,cmdUser,
+	DbUser,sLib,iLib string) error{
+	err = sshConn.CopyToRemote(srcFile,destFile)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println("PrepareWork.CopyToRemote ok")
+
+	cmdChangeProfile := fmt.Sprintf(`sed -i "%s" /etc/profile`,exportStr)
 	_,_,err = sshConn.ExecuteCommand(cmdChangeProfile)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println("PrepareWork.cmdChangeProfile ok")
+
 	_,_, err = sshConn.ExecuteCommand(cmdSource)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -267,28 +275,24 @@ func PrepareWork(sshConn *linux.MySSHConn,fileS,fileD,cmdChangeProfile,cmdSource
 	}
 	fmt.Println("PrepareWork.cmdSource ok")
 
-	//checkUser:="cat /etc/passwd|grep " + DbUser
-	//_, output, err := sshConn.ExecuteCommand(checkUser)
-	//if err != nil{
-	//	fmt.Println(err.Error())
-	//	return err
-	//}
-	//if output != ""{
-	//	cmdUserDel := "userdel "+ DbUser
-	//	_,_, err = sshConn.ExecuteCommand(cmdUserDel)
-	//	if err != nil{
-	//		fmt.Println(err.Error())
-	//		return err
-	//	}
-	//}
-	cmdUserDel := "userdel "+ DbUser
-	_,_, err = sshConn.ExecuteCommand(cmdUserDel)
+	err = InstallTool(sshConn,sLib,iLib)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
-	fmt.Println("PrepareWork.checkUser ok")
+	fmt.Println("PrepareWork.InstallTool ok")
 
+
+	checkUser := "cat /etc/passwd|grep mysql"
+	_,output,err := sshConn.ExecuteCommand(checkUser)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	if output != ""{
+		fmt.Println("User exists!")
+		return nil
+	}
 	_,_, err = sshConn.ExecuteCommand(cmdGroup)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -301,31 +305,29 @@ func PrepareWork(sshConn *linux.MySSHConn,fileS,fileD,cmdChangeProfile,cmdSource
 		return err
 	}
 	fmt.Println("PrepareWork.cmdUser ok")
-	err = InstallTool(sshConn,sLib,iLib)
-	if err != nil{
-		fmt.Println(err.Error())
-		return err
-	}
-	fmt.Println("PrepareWork.InstallTool ok")
+
+	return nil
+}
+
+func BasicWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmdGroup,cmdUser,
+	DbUser,DbGroup,file,sLib,iLib,dataDir,port string) error{
+
 	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println("PrepareWork.CreateSomeDir ok")
-	return nil
-}
 
-func BasicWork(sshConn *linux.MySSHConn,fileNameSource,fileNameDest,cmdChangeProfile,cmdSource,cmdGroup,cmdUser,
-	DbUser,DbGroup,file,sLib,iLib,dataDir,port string) error{
-
-	err = PrepareWork(sshConn,fileNameSource,fileNameDest,cmdChangeProfile,cmdSource,cmdGroup,cmdUser,
-		dataDir,port,DbUser,DbGroup,sLib,iLib)
+	// copy mysql to /usr/local/
+	err = PrepareWork(sshConn,srcFile,destFile,exportStr,
+		cmdSource,cmdGroup,cmdUser,DbUser,sLib,iLib)
 	if err != nil {
 		return err
 	}
 	fmt.Println("BasicWork.PrepareWork ok")
-	err = ChangeFile(sshConn,DbUser,DbGroup,file)
+
+	err = OwnAndMod(sshConn,DbUser,DbGroup,file)
 	if err != nil{
 		return err
 	}
@@ -333,17 +335,23 @@ func BasicWork(sshConn *linux.MySSHConn,fileNameSource,fileNameDest,cmdChangePro
 	return nil
 }
 
-func BasicWorkSlave(sshConn *linux.MySSHConn,DFileA,file,DFileB,dataDir,cmdChangeProfile,cmdSource,
+func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileB,dataDir,exportStr,cmdSource,
 	cmdGroup,cmdUser,DbUser,DbGroup,sLib,iLib,port string) error{
+	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	fmt.Println("PrepareWork.CreateSomeDir ok")
 
-	err = PrepareWork(sshConn,DFileA, file,cmdChangeProfile,cmdSource,cmdGroup,cmdUser,
-		dataDir,port,DbUser,DbGroup,sLib,iLib)
+	err = PrepareWork(sshConn,srcFile,baseDir,exportStr,
+		cmdSource,cmdGroup,cmdUser,DbUser,sLib,iLib)
 	if err != nil {
 		return err
 	}
 	fmt.Println("BasicWorkSlave.PrepareWork ok")
 
-	err = sshConn.CopyToRemote(DFileB, dataDir)
+	err = sshConn.CopyToRemote(DFileB,dataDir)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
@@ -358,12 +366,13 @@ func BasicWorkSlave(sshConn *linux.MySSHConn,DFileA,file,DFileB,dataDir,cmdChang
 		return err
 	}
 
-	err = ChangeFile(sshConn,DbUser,DbGroup,file)
+	err = OwnAndMod(sshConn,DbUser,DbGroup,baseDir)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println("BasicWorkSlave.ChangeFile ok")
+
 	_, _, err = sshConn.ExecuteCommand(startCommand+port)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -400,13 +409,22 @@ func MysqlConnect(ip,port,pwd,file string) (db *sql.DB, err error){
 	return db,nil
 }
 
-func ResetPasswd(ip,port,pwd,file string) error {
-	db,err := MysqlConnect(ip,port,pwd,file)
+func ResetPasswd(sshConn *linux.MySSHConn,pwd string) error {
+	//db,err := MysqlConnect(ip,port,pwd,file)
+	//if err != nil{
+	//	fmt.Println(err.Error())
+	//	return err
+	//}
+	//defer db.Close()
+	//return nil
+
+	setPdCmd := changePdCommand + pwd +" password " + mysqlPassword
+	_, _, err = sshConn.ExecuteCommand(setPdCmd)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
-	defer db.Close()
+
 	return nil
 }
 
@@ -435,7 +453,7 @@ func DbConnect(ip,port,file string) error {
 	return nil
 }
 
-func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,SFileA,DFileA,SFileB,DFileB,ip,port string) error {
+func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,dataDir,DFileA,ip,port string) error {
 	err = DbConnect(ip,port,sqlFileMaster)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -447,21 +465,16 @@ func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,SFileA,DFileA,SFileB,DFileB,
 		fmt.Println(err.Error())
 		return err
 	}
+	time.Sleep(time.Duration(3)*time.Second)
 	fmt.Println("MyMulti.stopCommand ok")
 
-	err = sshConn.CopyFromRemote(SFileA, DFileA)
+	err = sshConn.CopyFromRemote(dataDir,DFileA)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println("MyMulti.CopyFromRemote ok")
 
-	err = sshConn.CopyFromRemote(SFileB, DFileB)
-	if err != nil{
-		fmt.Println(err.Error())
-		return err
-	}
-	fmt.Println("MyMulti.CopyFromRemote ok")
 
 	_, _, err = sshConn.ExecuteCommand(startCommand+port)
 	if err != nil{
@@ -470,8 +483,6 @@ func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,SFileA,DFileA,SFileB,DFileB,
 	}
 	fmt.Println("MyMulti.startCommand ok")
 
-	//time.Sleep(time.Duration(3)*time.Second)
-	//
 	//_, _, err = conn.ExecuteCommand(reportCommand)
 	//if err != nil{
 	//	return err

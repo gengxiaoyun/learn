@@ -1,1 +1,1 @@
-alter user `root`@`localhost` identified by 'mysql';
+set password=password('mysql');

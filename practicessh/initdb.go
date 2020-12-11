@@ -8,16 +8,41 @@ import (
 	"io"
 	"os"
 	"github.com/romberli/go-util/linux"
+	"context"
+	"time"
 )
 
 const(
 	initCommand = "/usr/local/mysql/bin/mysqld --initialize --user=mysql"
-	//setupCommand = "/usr/local/mysql/bin/mysql_ssl_rsa_setup"
-	//safeCommand = "/usr/local/mysql/bin/mysqld_safe --defaults-file=/etc/my.cnf --user=mysql"
-	safeCommand = "/etc/init.d/mysql start"
+	setupCommand = "/usr/local/mysql/bin/mysql_ssl_rsa_setup"
+	safeCommand = "/usr/local/mysql/bin/mysqld_safe --user=mysql &"
+	//safeCommand = "/etc/init.d/mysql start"
 	//safeCommand = "/usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf --user=mysql"
 	psCommand = "ps -ef|grep mysql"
 )
+
+
+func AsyncCall(sshConn *linux.MySSHConn) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Millisecond*3000))
+	defer cancel()
+	go func() {
+		_,output,err := sshConn.ExecuteCommand(safeCommand)
+		if err != nil{
+			fmt.Println(err.Error())
+		}
+		fmt.Println("safeCommand:\n")
+		fmt.Println(output)
+	}()
+
+	select {
+	case <-ctx.Done():
+		fmt.Println("successfully!!!")
+		return
+	case <-time.After(time.Duration(time.Millisecond * 4000)):
+		fmt.Println("timeout!!!")
+		return
+	}
+}
 
 // initialize
 func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) error {
@@ -50,23 +75,16 @@ func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) 
 	fmt.Println(output)
 
 	// setup
-	//setupCmd := setupCommand + " --datadir=" + dataDir
-	//_,output,err = sshConn.ExecuteCommand(setupCmd)
-	//if err != nil{
-	//	fmt.Println(err.Error())
-	//	return err
-	//}
-	//fmt.Println("setupCommand:\n")
-	//fmt.Println(output)
-
-	_,output,err = sshConn.ExecuteCommand(safeCommand)
+	setupCmd := setupCommand + " --datadir=" + dataDir
+	_,output,err = sshConn.ExecuteCommand(setupCmd)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
-	fmt.Println("safeCommand:\n")
+	fmt.Println("setupCommand:\n")
 	fmt.Println(output)
 
+	AsyncCall(sshConn)
 
 	_,output,err = sshConn.ExecuteCommand(psCommand)
 	if err != nil{
@@ -83,14 +101,24 @@ func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) 
 	}
 
 	// reset password
-	//strPd := GetPassword("./testfile/mysqld.log")
-	//fmt.Println("temporary password: ", strPd)
-	//pdCmd := changePdCommand + strPd +" password " + mysqlPassword
-	//_,_,err = sshConn.ExecuteCommand(pdCmd)
-	//if err != nil{
-	//	fmt.Println(err.Error())
-	//	return err
+	strPd := GetPassword("./testfile/mysqld.log")
+	fmt.Println("temporary password: ", strPd)
+	//if strings.Contains(strPd,"("){
+	//	strPd = strings.Replace(strPd,"(","\\(",-1)
 	//}
+	//if strings.Contains(strPd,")"){
+	//	strPd = strings.Replace(strPd,")","\\)",-1)
+	//}
+	//if strings.Contains(strPd,"&"){
+	//	strPd = strings.Replace(strPd,"&","\\&",-1)
+	//}
+	//fmt.Println("temporary password: ", strPd)
+	pdCmd := changePdCommand + "'" + strPd + "'" +" password " + mysqlPassword
+	_,_,err = sshConn.ExecuteCommand(pdCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
 
 	return nil
 }
