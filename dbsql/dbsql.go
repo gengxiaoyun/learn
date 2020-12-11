@@ -13,9 +13,9 @@ import (
 
 const(
 	uname="root"
-	pwd="mysql"
+	pwd="mysql.server"
 	ip="127.0.0.1"
-	dbname="mysql"
+	dbname="mysql.server"
 )
 
 
@@ -60,14 +60,14 @@ func DbConnect(port,file string) error {
 }
 
 func ChangeSql(report_ip,report_port string) error{
-	f,err := os.Open("slave.sql")
+	f,err := os.Open("./dbsql/slave.sql")
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 	defer f.Close()
 
-	out,err := os.OpenFile("slave.sql"+".mdf", os.O_RDWR|os.O_CREATE, 0777)
+	out,err := os.OpenFile("./dbsql/slave.sql"+".mdf", os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
@@ -98,11 +98,11 @@ func ChangeSql(report_ip,report_port string) error{
 		}
 	}
 
-	err = os.Remove("slave.sql")
+	err = os.Remove("./dbsql/slave.sql")
 	if err != nil{
 		return err
 	}
-	err = os.Rename("slave.sql"+".mdf","slave.sql")
+	err = os.Rename("./dbsql/slave.sql"+".mdf","./dbsql/slave.sql")
 	if err != nil{
 		return err
 	}

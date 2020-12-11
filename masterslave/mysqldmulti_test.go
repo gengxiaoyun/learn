@@ -4,7 +4,7 @@ import "testing"
 
 const(
 	destFile = "/home/gengxy/mysql01/"
-	baseDir = destFile +"mysql-5.7.31-linux-glibc2.12-x86_64/"
+	baseDir = destFile +"mysql.server-5.7.31-linux-glibc2.12-x86_64/"
 	dir = ""
 	dirInit = baseDir +"bin/"
 	dirCp = baseDir +"mysqld_multi/"

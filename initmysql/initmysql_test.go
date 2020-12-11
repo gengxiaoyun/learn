@@ -3,11 +3,11 @@ package initmysql
 import "testing"
 
 const(
-	user = "mysql"
-	group = "mysql"
+	user = "mysql.server"
+	group = "mysql.server"
 
 	destFile = "/home/gengxy/mysql01/"
-	baseDir = destFile +"mysql-5.7.31-linux-glibc2.12-x86_64/"
+	baseDir = destFile +"mysql.server-5.7.31-linux-glibc2.12-x86_64/"
 	filePath = baseDir +"mysqld_multi/mysqld3306/"
 	dataDir = filePath+"data/"
 	dir = ""

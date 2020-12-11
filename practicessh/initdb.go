@@ -7,80 +7,100 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"github.com/romberli/go-util/linux"
 )
 
 const(
 	initCommand = "/usr/local/mysql/bin/mysqld --initialize --user=mysql"
-	setupCommand = "/usr/local/mysql/bin/mysqld/mysql_ssl_rsa_setup"
-	safeCommand = "/usr/local/mysql/bin/mysqld/mysqld_safe --user=mysql &"
+	//setupCommand = "/usr/local/mysql/bin/mysql_ssl_rsa_setup"
+	//safeCommand = "/usr/local/mysql/bin/mysqld_safe --defaults-file=/etc/my.cnf --user=mysql"
+	safeCommand = "/etc/init.d/mysql start"
+	//safeCommand = "/usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf --user=mysql"
 	psCommand = "ps -ef|grep mysql"
-	changePdCommand = "mysqladmin -uroot -p"
-	mysqlPassword = "mysql"
 )
 
 // initialize
-func (conn *MySSHConn) InitMysql(baseDir,user,group,dataDir string) error {
+func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) error {
 	var err error
+	log_error := "/mysqldata/mysql" + port + "/log/mysqld.log"
+
 	initCmd := initCommand + " --basedir=" + baseDir + " --datadir=" +
-		dataDir + " --log-error=" + dataDir +"mysql.err"
-	_,_,err = conn.ExecuteCommand(initCmd)
+		dataDir + " --log-error=" + log_error
+	_,_,err = sshConn.ExecuteCommand(initCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+
+	err = MyOwn(sshConn,user,group,dataDir)
+	if err != nil{
+		return err
+	}
+	err = MyMod(sshConn,dataDir)
 	if err != nil{
 		return err
 	}
 
-	err = conn.MyOwn(user,group,dataDir)
+	errCmd := "less " + log_error
+	_,output,err := sshConn.ExecuteCommand(errCmd)
 	if err != nil{
 		return err
 	}
-	err = conn.MyMod(dataDir)
-	if err != nil{
-		return err
-	}
-
-	errCmd := "less " + dataDir + "mysql.err"
-	_,output,err := conn.ExecuteCommand(errCmd)
-	if err != nil{
-		return err
-	}
+	fmt.Println("less log_error:\n")
 	fmt.Println(output)
 
 	// setup
-	setupCmd := setupCommand + " --datadir=" + dataDir
-	_,_,err = conn.ExecuteCommand(setupCmd)
-	if err != nil{
-		return err
-	}
+	//setupCmd := setupCommand + " --datadir=" + dataDir
+	//_,output,err = sshConn.ExecuteCommand(setupCmd)
+	//if err != nil{
+	//	fmt.Println(err.Error())
+	//	return err
+	//}
+	//fmt.Println("setupCommand:\n")
+	//fmt.Println(output)
 
-	_,output,err = conn.ExecuteCommand(safeCommand)
+	_,output,err = sshConn.ExecuteCommand(safeCommand)
 	if err != nil{
+		fmt.Println(err.Error())
 		return err
 	}
+	fmt.Println("safeCommand:\n")
 	fmt.Println(output)
 
-	_,output,err = conn.ExecuteCommand(psCommand)
+
+	_,output,err = sshConn.ExecuteCommand(psCommand)
 	if err != nil{
+		fmt.Println(err.Error())
 		return err
 	}
+	fmt.Println("psCommand:\n")
 	fmt.Println(output)
+
+	err = sshConn.CopyFromRemote(log_error, "./testfile")
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
 
 	// reset password
-	strPd := conn.GetPassword(dataDir +"mysql.err")
-	fmt.Println("temporary password: ", strPd)
-	pdCmd := changePdCommand + strPd +" password " + mysqlPassword
-	_,_,err = conn.ExecuteCommand(pdCmd)
-	if err != nil{
-		return err
-	}
+	//strPd := GetPassword("./testfile/mysqld.log")
+	//fmt.Println("temporary password: ", strPd)
+	//pdCmd := changePdCommand + strPd +" password " + mysqlPassword
+	//_,_,err = sshConn.ExecuteCommand(pdCmd)
+	//if err != nil{
+	//	fmt.Println(err.Error())
+	//	return err
+	//}
 
 	return nil
 }
 
 
 // get temporary password
-func (conn *MySSHConn) GetPassword(filename string) string {
+func GetPassword(filename string) string {
 	f,err := os.Open(filename)
 	if err != nil{
-		fmt.Println(err)
+		fmt.Println(err.Error())
 	}
 	defer f.Close()
 	buf := bufio.NewReader(f)

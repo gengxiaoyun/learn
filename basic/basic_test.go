@@ -6,7 +6,7 @@ import (
 )
 
 const(
-	srcFile = "/home/gengxy/mysql/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz"
+	srcFile = "/home/gengxy/mysql.server/mysql.server-5.7.31-linux-glibc2.12-x86_64.tar.gz"
 	destFile = "learn/testfile/unzipfile/"
 	filePath = "learn/testfile/data"
 	file = "learn/testfile/"
