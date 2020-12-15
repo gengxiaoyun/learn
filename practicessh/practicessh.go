@@ -7,9 +7,7 @@ import (
 	"io"
 	"os"
 
-	//"github.com/pkg/sftp"
 	"github.com/romberli/go-util/linux"
-	//"golang.org/x/crypto/ssh"
 	_"github.com/go-sql-driver/mysql"
 	"database/sql"
 	"io/ioutil"
@@ -20,16 +18,25 @@ import (
 
 const (
 	uname="root"
-	dbpd="mysql"
+	dbPasswd ="mysql"
 	//ip="127.0.0.1"
 	dbname="mysql"
 
 	mysqlPassword = "mysql"
-	changePdCommand = "/usr/local/mysql/bin/mysqladmin -uroot -p"
+	changePdCommand = "mysqladmin -uroot -p"
+	stopCommand = "mysqld_multi stop "
+	startCommand = "mysqld_multi start "
 
-	stopCommand = "/usr/local/mysql/bin/mysqld_multi stop "
-	startCommand = "/usr/local/mysql/bin/mysqld_multi start "
-
+	binFile = "/usr/bin"
+	cpMysql = "/usr/local/mysql/bin/mysql"
+	cpMyd = "/usr/local/mysql/bin/mysqld"
+	cpSafe = "/usr/local/mysql/bin/mysqld_safe"
+	cpMyMulti = "/usr/local/mysql/bin/mysqld_multi"
+	cpMyDump = "/usr/local/mysql/bin/mysqldump"
+	cpMyBinlog = "/usr/local/mysql/bin/mysqlbinlog"
+	cpMyCnfEdit = "/usr/local/mysql/bin/mysql_config_editor"
+	cpMyPriDef = "/usr/local/mysql/bin/my_print_defaults"
+	cpMyAdm = "/usr/local/mysql/bin/mysqladmin"
 )
 
 
@@ -107,7 +114,7 @@ func MyOwn(sshConn *linux.MySSHConn,DbUser,DbGroup,file string) error {
 }
 
 func MyMod(sshConn *linux.MySSHConn,file string) error {
-	modCmd := fmt.Sprintf(`sudo chmod -R g+rwx "%s"`,file)
+	modCmd := fmt.Sprintf(`sudo chmod -R 700 "%s"`,file)
 	_,_,err := sshConn.ExecuteCommand(modCmd)
 	if err != nil{
 		return err
@@ -251,6 +258,65 @@ func CreateSomeDir(sshConn *linux.MySSHConn,dataDir,port,DbUser,DbGroup string) 
 	return nil
 }
 
+func CopyBinaryCommand(sshConn *linux.MySSHConn) error{
+	cpMysqlCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMysql,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMysqlCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMydCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyd,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMydCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpSafeCmd := fmt.Sprintf(`cp "%s" "%s"`,cpSafe,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpSafeCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyMultiCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyMulti,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyMultiCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyDumpCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyDump,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyDumpCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyBinlogCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyBinlog,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyBinlogCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyCnfEditCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyCnfEdit,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyCnfEditCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyPriDefCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyPriDef,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyPriDefCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	cpMyAdmCmd := fmt.Sprintf(`cp "%s" "%s"`,cpMyAdm,binFile)
+	_,_,err = sshConn.ExecuteCommand(cpMyAdmCmd)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmdGroup,cmdUser,
 	DbUser,sLib,iLib string) error{
 	err = sshConn.CopyToRemote(srcFile,destFile)
@@ -259,6 +325,12 @@ func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,c
 		return err
 	}
 	fmt.Println("PrepareWork.CopyToRemote ok")
+
+	err = CopyBinaryCommand(sshConn)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
 
 	cmdChangeProfile := fmt.Sprintf(`sed -i "%s" /etc/profile`,exportStr)
 	_,_,err = sshConn.ExecuteCommand(cmdChangeProfile)
@@ -335,7 +407,7 @@ func BasicWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmd
 	return nil
 }
 
-func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileB,dataDir,exportStr,cmdSource,
+func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileA,dataDir,DFileB,exportStr,cmdSource,
 	cmdGroup,cmdUser,DbUser,DbGroup,sLib,iLib,port string) error{
 	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup)
 	if err != nil{
@@ -351,18 +423,20 @@ func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileB,dataDir,expo
 	}
 	fmt.Println("BasicWorkSlave.PrepareWork ok")
 
-	err = sshConn.CopyToRemote(DFileB,dataDir)
+	err = sshConn.CopyToRemote(DFileA,dataDir)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	err = sshConn.CopyToRemote(DFileB,"/mysqldata/mysql"+port+"/log/")
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
 	}
 
-	err = MyOwn(sshConn,DbUser,DbGroup,dataDir)
+	err = OwnAndMod(sshConn,DbUser,DbGroup,"/mysqldata")
 	if err != nil{
-		return err
-	}
-	err = MyMod(sshConn,dataDir)
-	if err != nil{
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -371,7 +445,7 @@ func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileB,dataDir,expo
 		fmt.Println(err.Error())
 		return err
 	}
-	fmt.Println("BasicWorkSlave.ChangeFile ok")
+	fmt.Println("BasicWorkSlave.CopyToRemote ok")
 
 	_, _, err = sshConn.ExecuteCommand(startCommand+port)
 	if err != nil{
@@ -382,8 +456,8 @@ func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileB,dataDir,expo
 	return nil
 }
 
-func MysqlConnect(ip,port,pwd,file string) (db *sql.DB, err error){
-	path := strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")
+func MysqlConnect(pwd,file,connectStr string) (db *sql.DB, err error){
+	path := strings.Join([]string{uname,":",pwd,"@"+connectStr+"/",dbname,"?charset=utf8&multiStatements=true"},"")
 	db,_ = sql.Open("mysql",path)
 
 	db.SetConnMaxLifetime(100)
@@ -409,27 +483,19 @@ func MysqlConnect(ip,port,pwd,file string) (db *sql.DB, err error){
 	return db,nil
 }
 
-func ResetPasswd(sshConn *linux.MySSHConn,pwd string) error {
-	//db,err := MysqlConnect(ip,port,pwd,file)
-	//if err != nil{
-	//	fmt.Println(err.Error())
-	//	return err
-	//}
-	//defer db.Close()
-	//return nil
+//func ResetPasswd(pwd,file,connectStr string) error {
+//	db,err := MysqlConnect(pwd,file,connectStr)
+//	if err != nil{
+//		fmt.Println(err.Error())
+//		return err
+//	}
+//	defer db.Close()
+//
+//	return nil
+//}
 
-	setPdCmd := changePdCommand + pwd +" password " + mysqlPassword
-	_, _, err = sshConn.ExecuteCommand(setPdCmd)
-	if err != nil{
-		fmt.Println(err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func DbConnect(ip,port,file string) error {
-	db,err := MysqlConnect(ip,port,dbpd,file)
+func DbConnect(connectStr,file string) error {
+	db,err := MysqlConnect(dbPasswd,file,connectStr)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
@@ -453,8 +519,8 @@ func DbConnect(ip,port,file string) error {
 	return nil
 }
 
-func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,dataDir,DFileA,ip,port string) error {
-	err = DbConnect(ip,port,sqlFileMaster)
+func MyMulti(sshConn *linux.MySSHConn,connectStr,sqlFileMaster,dataDir,DFileA,logErrDir,DFileB,port string) error {
+	err = DbConnect(connectStr,sqlFileMaster)
 	if err != nil{
 		fmt.Println(err.Error())
 		return err
@@ -465,7 +531,7 @@ func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,dataDir,DFileA,ip,port strin
 		fmt.Println(err.Error())
 		return err
 	}
-	time.Sleep(time.Duration(3)*time.Second)
+	time.Sleep(time.Duration(5)*time.Second)
 	fmt.Println("MyMulti.stopCommand ok")
 
 	err = sshConn.CopyFromRemote(dataDir,DFileA)
@@ -474,7 +540,12 @@ func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,dataDir,DFileA,ip,port strin
 		return err
 	}
 	fmt.Println("MyMulti.CopyFromRemote ok")
-
+	err = sshConn.CopyFromRemote(logErrDir,DFileB)
+	if err != nil{
+		fmt.Println(err.Error())
+		return err
+	}
+	fmt.Println("MyMulti.CopyFromRemote ok")
 
 	_, _, err = sshConn.ExecuteCommand(startCommand+port)
 	if err != nil{
@@ -482,11 +553,7 @@ func MyMulti(sshConn *linux.MySSHConn,sqlFileMaster,dataDir,DFileA,ip,port strin
 		return err
 	}
 	fmt.Println("MyMulti.startCommand ok")
-
-	//_, _, err = conn.ExecuteCommand(reportCommand)
-	//if err != nil{
-	//	return err
-	//}
+	time.Sleep(time.Duration(5)*time.Second)
 
 	return nil
 }

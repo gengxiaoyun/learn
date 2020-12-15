@@ -1,1 +1,0 @@
-set password=password('mysql');

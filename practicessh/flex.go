@@ -27,13 +27,6 @@ type Mysqld_multi struct {
 	Pass string `toml:"pass"`
 }
 
-type Mysqld_safe struct {
-	Log_error string `toml:"log_error"`
-	Pid_file string `toml:"pid-file"`
-	Datadir string `toml:"datadir"`
-	Socket string `toml:"socket"`
-}
-
 type Mysql struct {
 	Default_character_set string `toml:"default-character-set"`
 }
@@ -146,17 +139,12 @@ type Mysqld struct {
 type Config struct {
 	Client *Client `toml:"client"`
 	Mysqld_multi *Mysqld_multi `toml:"mysqld_multi"`
-	Mysqld_safe *Mysqld_safe `toml:"mysqld_safe"`
 	Mysql *Mysql `toml:"mysql"`
 	Mysqld *Mysqld `toml:"mysqld"`
 }
 
 var (
 	err error
-	//address string
-	//user string
-	//pass string
-
 	confPath string
 	Conf = &Config{}
 
@@ -171,10 +159,6 @@ var (
 )
 
 func init() {
-	//flag.StringVar(&address,"address","192.168.186.132:3306","set ip and port")
-	//flag.StringVar(&user,"user","root","set username")
-	//flag.StringVar(&pass,"pass","root","set password")
-
 	flag.StringVar(&confPath, "conf", "cnf.toml", "-conf path")
 }
 
@@ -243,12 +227,6 @@ func SetValueToStruct(report_host,port,b,c,d string) *Config {
 	slow_query_log_file := "/mysqldata/mysql" + port + "/log/mysql-slow.log"
 
 	v := reflect.ValueOf(Conf.Client).Elem()
-	v.FieldByName("Socket").Set(reflect.ValueOf(socket))
-
-	v = reflect.ValueOf(Conf.Mysqld_safe).Elem()
-	v.FieldByName("Log_error").Set(reflect.ValueOf(log_error))
-	v.FieldByName("Pid_file").Set(reflect.ValueOf(pid_file))
-	v.FieldByName("Datadir").Set(reflect.ValueOf(datadir))
 	v.FieldByName("Socket").Set(reflect.ValueOf(socket))
 
 	v = reflect.ValueOf(Conf.Mysqld).Elem()
@@ -379,24 +357,3 @@ func Flex(address string) ([][]string,error){
 
 	return arr,nil
 }
-
-
-
-//func main() {
-//	if err = Init(); err != nil {
-//		//log.Printf("conf.Init() err:%+v", err)
-//		fmt.Println("failed")
-//	}
-//
-//	arr := FlagCommand()
-//	val := arr[0][1]
-//	err = flex(arr)
-//	if err != nil {
-//		fmt.Println(err.Error())
-//	}
-//
-//	err = ChangeConfFile(filename,"./testout0002.txt",val)
-//	if err != nil {
-//		fmt.Println(err.Error())
-//	}
-//}

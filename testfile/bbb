@@ -1,6 +1,0 @@
-###
-thread_cache_size=16
-###
-innodb_buffer_pool_size=512M
-###
-key_buffer_size=16M

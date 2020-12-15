@@ -2,62 +2,11 @@ package dbsql
 
 import (
 	"strings"
-	"database/sql"
 	"fmt"
-	"io/ioutil"
-	_"github.com/go-sql-driver/mysql"
 	"os"
 	"bufio"
 	"io"
 )
-
-const(
-	uname="root"
-	pwd="mysql.server"
-	ip="127.0.0.1"
-	dbname="mysql.server"
-)
-
-
-func DbConnect(port,file string) error {
-	path := strings.Join([]string{uname,":",pwd,"@tcp(",ip,":",port,")/",dbname,"?charset=utf8&multiStatements=true"},"")
-	db,_ := sql.Open("mysql",path)
-	defer db.Close()
-	db.SetConnMaxLifetime(100)
-	db.SetMaxIdleConns(10)
-	err := db.Ping()
-	if err != nil{
-		fmt.Println("open database fail",err.Error())
-		return err
-	}
-	fmt.Println("database connect success")
-	sqlBytes,err := ioutil.ReadFile(file)
-	if err != nil{
-		return err
-	}
-	sqlTable := string(sqlBytes)
-	fmt.Println(sqlTable)
-	_,err = db.Exec(sqlTable)
-	if err != nil{
-		return err
-	}
-
-	rows,err := db.Query("select * from `test`;")
-	defer rows.Close()
-	if err != nil{
-		return err
-	}
-	for rows.Next() {
-		var id int
-		var name string
-		err := rows.Scan(&id,&name)
-		if err != nil{
-			return err
-		}
-		fmt.Println(id,name)
-	}
-	return nil
-}
 
 func ChangeSql(report_ip,report_port string) error{
 	f,err := os.Open("./dbsql/slave.sql")

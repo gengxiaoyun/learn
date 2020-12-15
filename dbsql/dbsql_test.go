@@ -4,13 +4,16 @@ import (
 	"testing"
 )
 
-const(
-	port="3306"
-	sql_file="dbsql/master.sql"
-)
+func TestChangeSql(t *testing.T) {
+	var (
+		err error
+		report_ip string
+		report_port string
+	)
+	report_ip = "192.168.186.132"
+	report_port = "3306"
 
-func TestDbConnect(t *testing.T) {
-	err := DbConnect(port,sql_file)
+	err = ChangeSql(report_ip,report_port)
 	if err != nil{
 		t.Fatal("failed")
 	}

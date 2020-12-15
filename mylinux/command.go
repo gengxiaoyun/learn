@@ -14,21 +14,9 @@ func Command(cmd *exec.Cmd) error {
 	cmd.Stderr=&stderr
 	err:=cmd.Run()
 	if err != nil{
-		//fmt.Println(fmt.Sprint(err)+": "+stderr.String())
 		return err
 	}
 	fmt.Println(out.String())
-	return nil
-}
-
-// linux command  as root
-func CmdRoot(command string) error {
-	cmd:=exec.Command("sudo","su","root","-c",command)
-	err:=Command(cmd)
-	if err != nil{
-		return err
-	}
-	fmt.Println("succeeded")
 	return nil
 }
 

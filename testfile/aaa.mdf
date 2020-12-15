@@ -1,5 +1,0 @@
-###
-basedir=/home/gengxy/mysql01/mysql-5.7.31-linux-glibc2.12-x86_64/
-###
-datadir=/home/gengxy/mysql01/mysql-5.7.31-linux-glibc2.12-x86_64/mysqld_multi/mysqld3306/data/
-###
