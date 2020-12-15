@@ -6,7 +6,7 @@ import (
 	"flag"
 	"runtime"
 	"os"
-	"learn/prepare"
+	"github.com/gengxiaoyun/learn/prepare"
 )
 
 func main() {

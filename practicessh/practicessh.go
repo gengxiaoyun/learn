@@ -483,17 +483,6 @@ func MysqlConnect(pwd,file,connectStr string) (db *sql.DB, err error){
 	return db,nil
 }
 
-//func ResetPasswd(pwd,file,connectStr string) error {
-//	db,err := MysqlConnect(pwd,file,connectStr)
-//	if err != nil{
-//		fmt.Println(err.Error())
-//		return err
-//	}
-//	defer db.Close()
-//
-//	return nil
-//}
-
 func DbConnect(connectStr,file string) error {
 	db,err := MysqlConnect(dbPasswd,file,connectStr)
 	if err != nil{
