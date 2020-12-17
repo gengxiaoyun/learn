@@ -8,6 +8,7 @@ import (
 	"io"
 )
 
+// change master_host and master_port
 func ChangeSql(report_ip,report_port string) error{
 	f,err := os.Open("./dbsql/slave.sql")
 	if err != nil{
@@ -34,8 +35,8 @@ func ChangeSql(report_ip,report_port string) error{
 			return err
 		}
 		newline = string(line)
-		if strings.Contains(newline,"192.168.186.131") {
-			newline = strings.Replace(newline, "192.168.186.131", report_ip, 1)
+		if strings.Contains(newline,"192.168.186.132") {
+			newline = strings.Replace(newline, "192.168.186.132", report_ip, 1)
 		}
 		if strings.Contains(newline,"3306") {
 			newline = strings.Replace(newline, "3306", report_port, 1)

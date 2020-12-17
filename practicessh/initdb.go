@@ -25,15 +25,10 @@ func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) 
 		dataDir + " --log-error=" + log_error
 	_,_,err = sshConn.ExecuteCommand(initCmd)
 	if err != nil{
-		fmt.Println(err.Error())
 		return err
 	}
 
-	err = MyOwn(sshConn,user,group,dataDir)
-	if err != nil{
-		return err
-	}
-	err = MyMod(sshConn,dataDir)
+	err = OwnAndMod(sshConn,user,group,dataDir)
 	if err != nil{
 		return err
 	}
@@ -49,43 +44,40 @@ func InitMysql(sshConn *linux.MySSHConn,baseDir,user,group,dataDir,port string) 
 	setupCmd := setupCommand + " --datadir=" + dataDir
 	_,output,err = sshConn.ExecuteCommand(setupCmd)
 	if err != nil{
-		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println(output)
 
 	_,output,err = sshConn.ExecuteCommand(safeCommand+port)
 	if err != nil{
-		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Println(output)
 
 	err = sshConn.CopyFromRemote(log_error, "./testfile")
 	if err != nil{
-		fmt.Println(err.Error())
 		return err
 	}
 
 	// reset password
-	strPd := GetPassword("./testfile/mysqld.log")
-	fmt.Println("temporary password: ", strPd)
+	strPd,err := GetPassword("./testfile/mysqld.log")
+	if err != nil{
+		return err
+	}
 	pdCmd := changePdCommand + "'" + strPd + "'" +" password " + mysqlPassword
 	_,_,err = sshConn.ExecuteCommand(pdCmd)
 	if err != nil{
-		fmt.Println(err.Error())
 		return err
 	}
 
 	return nil
 }
 
-
 // get temporary password
-func GetPassword(filename string) string {
+func GetPassword(filename string) (string,error) {
 	f,err := os.Open(filename)
 	if err != nil{
-		fmt.Println(err.Error())
+		return "",err
 	}
 	defer f.Close()
 	buf := bufio.NewReader(f)
@@ -96,13 +88,13 @@ func GetPassword(filename string) string {
 			break
 		}
 		if err != nil{
-			fmt.Println(err.Error())
+			return "",err
 		}
 		if strings.Contains(line,"root@localhost:"){
 			Regexp := regexp.MustCompile("(.*?)(root@localhost: )(.*?)\n$")
 			pd_str = Regexp.FindStringSubmatch(line)
 		}
 	}
-	return string(pd_str[3])
+	return string(pd_str[3]),nil
 }
 

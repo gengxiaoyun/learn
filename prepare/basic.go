@@ -31,7 +31,6 @@ const(
 	p = 22
 
 	exportStr = "/export GO111MODULE=on/a\\export PATH=$PATH:/usr/local/mysql/bin"
-	//cmdChangeProfile = "echo `export PATH=$PATH:/usr/local/mysql/bin` >> /etc/profile"
 	cmdSource = "source /etc/profile"
 	cmdGroup = "groupadd "+DbGroup
 	cmdUser = `useradd -p "openssl passwd -1 -salt "some" user" -r -g mysql mysql`
@@ -220,7 +219,6 @@ func StartMysql() error{
 	for i:=0;i<len(arr);i++ {
 		sshConn,err := practicessh.MySshConnect(arr[i][0],p,user,pass)
 		if err != nil{
-			fmt.Println(err.Error())
 			return err
 		}
 		log.Println("ssh connect succeedd")
