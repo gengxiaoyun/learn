@@ -1,4 +1,4 @@
-module learn
+module github.com/gengxiaoyun/learn
 
 go 1.15
 
