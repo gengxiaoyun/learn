@@ -9,7 +9,7 @@ func TestFlex(t *testing.T) {
 		address string
 		arr [][]string
 	)
-	address = "192.168.186.132:3306,192.168.186.132:3307"
+	address = "192.168.186.137:3306,192.168.186.137:3307"
 
 	if err = Init(); err != nil {
 		t.Fatal("failed")

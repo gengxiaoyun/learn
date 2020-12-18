@@ -9,21 +9,12 @@ import (
 
 	"github.com/romberli/go-util/linux"
 	_"github.com/go-sql-driver/mysql"
-	"database/sql"
-	"io/ioutil"
 	"archive/tar"
 	"bufio"
 	"time"
 )
 
 const (
-	uname="root"
-	dbPasswd ="mysql"
-	//ip="127.0.0.1"
-	dbname="mysql"
-
-	mysqlPassword = "mysql"
-	changePdCommand = "mysqladmin -uroot -p"
 	stopCommand = "mysqld_multi stop "
 	startCommand = "mysqld_multi start "
 
@@ -37,9 +28,10 @@ const (
 	cpMyCnfEdit = "/usr/local/mysql/bin/mysql_config_editor"
 	cpMyPriDef = "/usr/local/mysql/bin/my_print_defaults"
 	cpMyAdm = "/usr/local/mysql/bin/mysqladmin"
+
+	setPdSql = "/usr/local/setpassword.sql"
+	setMasterSql = "/usr/local/master.sql"
 )
-
-
 
 // create file
 func CreateFile(name string) (*os.File,error) {
@@ -304,24 +296,32 @@ func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,c
 	if err != nil{
 		return err
 	}
+	fmt.Println("CopyToRemote")
+
 	err = CopyBinaryCommand(sshConn)
 	if err != nil{
 		return err
 	}
+	fmt.Println("CopyBinaryCommand")
 
 	cmdChangeProfile := fmt.Sprintf(`sed -i "%s" /etc/profile`,exportStr)
 	_,_,err = sshConn.ExecuteCommand(cmdChangeProfile)
 	if err != nil{
 		return err
 	}
+	fmt.Println("cmdChangeProfile")
+
 	_,_, err = sshConn.ExecuteCommand(cmdSource)
 	if err != nil{
 		return err
 	}
+	fmt.Println("cmdSource")
+
 	err = InstallTool(sshConn,sLib,iLib)
 	if err != nil{
 		return err
 	}
+	fmt.Println("InstallTool")
 
 	checkUser := "cat /etc/passwd|grep " + DbUser
 	_,output,err := sshConn.ExecuteCommand(checkUser)
@@ -403,69 +403,28 @@ func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileA,dataDir,DFil
 	if err != nil{
 		return err
 	}
+	time.Sleep(time.Duration(20)*time.Second)
 
 	return nil
 }
 
-func MysqlConnect(pwd,file,connectStr string) (db *sql.DB, err error){
-	path := strings.Join([]string{uname,":",pwd,"@"+connectStr+"/",dbname,"?charset=utf8&multiStatements=true"},"")
-	db,_ = sql.Open("mysql",path)
-
-	db.SetConnMaxLifetime(100)
-	db.SetMaxIdleConns(10)
-	err = db.Ping()
-	if err != nil{
-		fmt.Println("open database fail",err.Error())
-		return nil,err
-	}
-
-	sqlBytes,err := ioutil.ReadFile(file)
-	if err != nil{
-		return nil,err
-	}
-	sqlTable := string(sqlBytes)
-	fmt.Println(sqlTable)
-	_,err = db.Exec(sqlTable)
-	if err != nil{
-		return nil,err
-	}
-	return db,nil
-}
-
-func DbConnect(connectStr,file string) error {
-	db,err := MysqlConnect(dbPasswd,file,connectStr)
+func MyMulti(sshConn *linux.MySSHConn,dataDir,DFileA,logErrDir,DFileB,port string) error {
+	setPdCommand := "mysql -uroot < " + setPdSql
+	_,_,err = sshConn.ExecuteCommand(setPdCommand)
 	if err != nil{
 		return err
 	}
-	defer db.Close()
-
-	rows,err := db.Query("select * from `test`;")
-	defer rows.Close()
+	setMasterCommand := "mysql -uroot -pmysql < " + setMasterSql
+	_,_,err = sshConn.ExecuteCommand(setMasterCommand)
 	if err != nil{
 		return err
 	}
-	for rows.Next() {
-		var id int
-		var name string
-		err := rows.Scan(&id,&name)
-		if err != nil{
-			return err
-		}
-		fmt.Println(id,name)
-	}
-	return nil
-}
 
-func MyMulti(sshConn *linux.MySSHConn,connectStr,sqlFileMaster,dataDir,DFileA,logErrDir,DFileB,port string) error {
-	err = DbConnect(connectStr,sqlFileMaster)
-	if err != nil{
-		return err
-	}
 	_, _, err = sshConn.ExecuteCommand(stopCommand+port)
 	if err != nil{
 		return err
 	}
-	time.Sleep(time.Duration(5)*time.Second)
+	time.Sleep(time.Duration(10)*time.Second)
 
 	err = sshConn.CopyFromRemote(dataDir,DFileA)
 	if err != nil{
@@ -475,11 +434,12 @@ func MyMulti(sshConn *linux.MySSHConn,connectStr,sqlFileMaster,dataDir,DFileA,lo
 	if err != nil{
 		return err
 	}
+
 	_, _, err = sshConn.ExecuteCommand(startCommand+port)
 	if err != nil{
 		return err
 	}
-	time.Sleep(time.Duration(5)*time.Second)
+	time.Sleep(time.Duration(15)*time.Second)
 
 	return nil
 }

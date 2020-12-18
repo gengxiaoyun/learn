@@ -15,7 +15,7 @@ func TestInitMysql(t *testing.T) {
 		dataDir string
 		port string
 	)
-	hostIP = "192.168.186.132"
+	hostIP = "192.168.186.137"
 	portNum = 22
 	user = "root"
 	pass = "root"

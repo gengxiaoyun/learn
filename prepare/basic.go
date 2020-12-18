@@ -2,11 +2,13 @@ package prepare
 
 import (
 	"log"
-	"fmt"
 	"flag"
 	"github.com/gengxiaoyun/learn/mylinux"
 	"github.com/gengxiaoyun/learn/practicessh"
 	"github.com/gengxiaoyun/learn/dbsql"
+	"fmt"
+	"time"
+	"os"
 )
 
 const(
@@ -40,14 +42,15 @@ const(
 
 	dir = ""
 
+	sqlFileSetPd = "./dbsql/setpassword.sql"
 	sqlFileMaster = "./dbsql/master.sql"
 	sqlFileSlave = "./dbsql/slave.sql"
 	sqlFileTest = "./dbsql/test.sql"
+	sqlFileSlaveTest = "./dbsql/slavetest.sql"
 
 	// copy mysql data to local
 	DFileA = "/usr/local/data/"
-	DFileB = "/usr/local/log/"
-	mkCommand = "mkdir " + DFileB
+	DFileB = "/usr/local/log"
 	rmCommand = "rm -rf "
 
 	startCommand = "mysqld_multi start "
@@ -65,6 +68,19 @@ func init() {
 	flag.StringVar(&address, "address", "192.168.186.132:3306", "set ip and port")
 	flag.StringVar(&user, "user", "root", "set username")
 	flag.StringVar(&pass, "pass", "root", "set password")
+}
+
+func CheckPath(file string) error{
+	_,err = os.Stat(file)
+	if err == nil{
+		return nil
+	}
+
+	err = mylinux.Cmd("mkdir " + file,dir)
+	if err != nil{
+		return err
+	}
+	return nil
 }
 
 func StartMysql() error{
@@ -130,17 +146,34 @@ func StartMysql() error{
 			log.Println("InitMysql succeedd")
 
 			logErrDir := "/mysqldata/mysql" + arr[i][1] + "/log/"
-			connectStr := "unix(/mysqldata/mysql"+arr[i][1]+"/mysql.sock)"
-
-			err = mylinux.Cmd(mkCommand,dir)
+			err = CheckPath(DFileA)
 			if err != nil{
 				return err
 			}
-			err = practicessh.MyMulti(sshConn,connectStr,sqlFileMaster,dataDir,DFileA,logErrDir,DFileB,arr[i][1])
+			err = CheckPath(DFileB)
+			if err != nil{
+				return err
+			}
+
+			err = sshConn.CopyToRemote(sqlFileSetPd,destFile)
+			if err != nil{
+				return err
+			}
+			err = sshConn.CopyToRemote(sqlFileMaster,destFile)
+			if err != nil{
+				return err
+			}
+			err = sshConn.CopyToRemote(sqlFileTest,destFile)
+			if err != nil{
+				return err
+			}
+
+			err = practicessh.MyMulti(sshConn,dataDir,DFileA,logErrDir,DFileB,arr[i][1])
 			if err != nil{
 				return err
 			}
 			log.Println("MyMulti succeeded")
+
 			rmCmd := rmCommand + destFile +"data/auto.cnf"
 			err = mylinux.Cmd(rmCmd,dir)
 			if err != nil{
@@ -154,6 +187,8 @@ func StartMysql() error{
 			log.Println("ChangeSql succeeded")
 
 		} else {
+			setSlaveCommand := "mysql -uroot -pmysql -S /mysqldata/mysql"+arr[i][1]+"/mysql.sock < " + "/usr/local/slave.sql"
+
 			if arr[i][0] == arr[0][0] {
 				err = practicessh.CreateSomeDir(sshConn,dataDir,arr[i][1],DbUser,DbGroup)
 				if err != nil{
@@ -176,14 +211,23 @@ func StartMysql() error{
 					return err
 				}
 				log.Println("Slave startCommand ok")
+				time.Sleep(time.Duration(15)*time.Second)
 
-				//connectStr := "tcp("+arr[i][0]+":"+arr[i][1]+")"
-				connectStr := "unix(/mysqldata/mysql"+arr[i][1]+"/mysql.sock)"
-				err = practicessh.DbConnect(connectStr,sqlFileSlave)
+				err = sshConn.CopyToRemote(sqlFileSlave,destFile)
+				if err != nil{
+					return err
+				}
+				err = sshConn.CopyToRemote(sqlFileSlaveTest,destFile)
+				if err != nil{
+					return err
+				}
+
+				_,_,err = sshConn.ExecuteCommand(setSlaveCommand)
 				if err != nil{
 					return err
 				}
 				log.Println("slave DbConnect succeedd")
+
 
 			} else {
 				err = sshConn.CopyToRemote(srcCnfFile,destCnfFile)
@@ -203,13 +247,21 @@ func StartMysql() error{
 				}
 				log.Println("BasicWorkSlave succeedd")
 
-				//connectStr := "tcp("+arr[i][0]+":"+arr[i][1]+")"
-				connectStr := "unix(/mysqldata/mysql"+arr[i][1]+"/mysql.sock)"
-				err = practicessh.DbConnect(connectStr,sqlFileSlave)
+				err = sshConn.CopyToRemote(sqlFileSlave,destFile)
+				if err != nil{
+					return err
+				}
+				err = sshConn.CopyToRemote(sqlFileSlaveTest,destFile)
+				if err != nil{
+					return err
+				}
+
+				_,_,err = sshConn.ExecuteCommand(setSlaveCommand)
 				if err != nil{
 					return err
 				}
 				log.Println("slave DbConnect succeedd")
+
 			}
 
 		}
@@ -222,25 +274,29 @@ func StartMysql() error{
 			return err
 		}
 		log.Println("ssh connect succeedd")
-		//connectStr := "tcp("+arr[i][0]+":"+arr[i][1]+")"
-		connectStr := "unix(/mysqldata/mysql"+arr[i][1]+"/mysql.sock)"
 		if i==0{
-			_, _, err = sshConn.ExecuteCommand(reportCommand)
+			_, output, err := sshConn.ExecuteCommand(reportCommand)
 			if err != nil{
 				return err
 			}
+			log.Println(output)
 			log.Println("reportCommand succeedd")
-			err = practicessh.DbConnect(connectStr,sqlFileTest)
-			if err != nil {
-				return err
-			}
-			log.Println("master DbConnect succeedd")
-		} else {
-			err = practicessh.DbConnect(connectStr,sqlFileSlave)
+			setMasterTestCommand := "mysql -uroot -pmysql < " + "/usr/local/test.sql"
+			_,_,err = sshConn.ExecuteCommand(setMasterTestCommand)
 			if err != nil{
 				return err
 			}
+			log.Println("master test succeedd")
+
+		} else {
+			setSlaveTestCommand := "mysql -uroot -pmysql -S /mysqldata/mysql"+arr[i][1]+"/mysql.sock < " + "/usr/local/slavetest.sql"
+			_,output,err := sshConn.ExecuteCommand(setSlaveTestCommand)
+			if err != nil{
+				return err
+			}
+			log.Println(output)
 			log.Println("slave DbConnect succeedd")
+
 		}
 	}
 	return nil

@@ -10,7 +10,7 @@ func TestChangeSql(t *testing.T) {
 		report_ip string
 		report_port string
 	)
-	report_ip = "192.168.186.132"
+	report_ip = "192.168.186.137"
 	report_port = "3306"
 
 	err = ChangeSql(report_ip,report_port)
