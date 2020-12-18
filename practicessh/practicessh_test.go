@@ -55,7 +55,7 @@ func TestChangeMysqlServerFile(t *testing.T) {
 }
 
 func TestBasicWork(t *testing.T) {
-	hostIP = "192.168.186.132"
+	hostIP = "192.168.186.137"
 	srcFile = "/home/gengxy/mysql/"
 	destFile = "/usr/local/"
 	file = "/usr/local/mysql/"
@@ -75,7 +75,7 @@ func TestBasicWork(t *testing.T) {
 
 func TestBasicWorkSlave(t *testing.T) {
 	var baseDir string
-	hostIP = "192.168.186.136"
+	hostIP = "192.168.186.138"
 	srcFile = "/home/gengxy/mysql/"
 	baseDir = "/usr/local/mysql/"
 	dataDir = "/mysqldata/mysql3308/data/"
@@ -93,14 +93,9 @@ func TestBasicWorkSlave(t *testing.T) {
 }
 
 func TestMyMulti(t *testing.T) {
-	var(
-		connectStr string
-		sqlFileMaster string
-		logErrDir string
-	)
-	hostIP = "192.168.186.132"
-	connectStr = "unix(/mysqldata/mysql3306/mysql.sock)"
-	sqlFileMaster = "./dbsql/master.sql"
+	var logErrDir string
+
+	hostIP = "192.168.186.137"
 	dataDir = "/mysqldata/mysql3306/data/"
 	logErrDir = "/mysqldata/mysql3306/log/"
 	port = "3306"
@@ -109,7 +104,7 @@ func TestMyMulti(t *testing.T) {
 	if err != nil{
 		t.Fatal("failed")
 	}
-	err = MyMulti(sshConn,connectStr,sqlFileMaster,dataDir,DFileA,logErrDir,DFileB,port)
+	err = MyMulti(sshConn,dataDir,DFileA,logErrDir,DFileB,port)
 	if err != nil{
 		t.Fatal("failed")
 	}
