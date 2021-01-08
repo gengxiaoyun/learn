@@ -3,9 +3,12 @@ package prepare
 import (
 	"log"
 	"flag"
-	"github.com/gengxiaoyun/learn/mylinux"
-	"github.com/gengxiaoyun/learn/practicessh"
-	"github.com/gengxiaoyun/learn/dbsql"
+	//"github.com/gengxiaoyun/learn/mylinux"
+	//"github.com/gengxiaoyun/learn/practicessh"
+	//"github.com/gengxiaoyun/learn/dbsql"
+	"learn/mylinux"
+	"learn/practicessh"
+	"learn/dbsql"
 	"fmt"
 	"time"
 	"os"
@@ -58,17 +61,17 @@ const(
 )
 
 var(
-	address string
-	user string
-	pass string
+	//address string
+	//user string
+	//pass string
 	err error
 )
 
-func init() {
-	flag.StringVar(&address, "address", "192.168.186.132:3306", "set ip and port")
-	flag.StringVar(&user, "user", "root", "set username")
-	flag.StringVar(&pass, "pass", "root", "set password")
-}
+//func init() {
+//	flag.StringVar(&address, "address", "192.168.186.132:3306", "set ip and port")
+//	flag.StringVar(&user, "user", "root", "set username")
+//	flag.StringVar(&pass, "pass", "root", "set password")
+//}
 
 func CheckPath(file string) error{
 	_,err = os.Stat(file)
@@ -83,13 +86,14 @@ func CheckPath(file string) error{
 	return nil
 }
 
-func StartMysql() error{
+func StartMysql(str []string,user,pass string) error{
 
 	if err = practicessh.Init(); err != nil {
 		log.Printf("conf.Init() err:%+v", err)
 		return err
 	}
-	arr,err := practicessh.Flex(address)
+	//arr,err := practicessh.Flex(address)
+	arr,err := practicessh.Flex(str)
 	if err != nil {
 		log.Println(err.Error())
 		return err

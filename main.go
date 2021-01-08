@@ -6,7 +6,10 @@ import (
 	"flag"
 	"runtime"
 	"os"
-	"github.com/gengxiaoyun/learn/prepare"
+	//"github.com/gengxiaoyun/learn/prepare"
+	"learn/prepare"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -27,7 +30,17 @@ func main() {
 	//write log
 	log.Printf("Log start! File:%v \n", "InstallMysql.log")
 
-	err = prepare.StartMysql()
+	r := gin.Default()
+	r.GET("/",func(c *gin.Context){
+		c.JSON(200,c.QueryArray("address"))
+		fmt.Println(c.QueryArray("address"))
+		fmt.Println(c.Query("user"))
+		fmt.Println(c.Query("password"))
+		err = prepare.StartMysql(c.QueryArray("address"),c.Query("user"),c.Query("password"))
+
+	})
+	r.Run(":8080")
+
 	if err != nil{
 		log.Println(err.Error())
 	}

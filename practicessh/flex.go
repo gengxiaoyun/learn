@@ -168,8 +168,26 @@ func Init() (err error) {
 	return
 }
 
-func FlagCommand(address string) [][]string{
-	str := strings.Split(address,",")
+//func FlagCommand(address string) [][]string{
+//	str := strings.Split(address,",")
+//	a := len(str)
+//	arr := make([][]string,a)
+//	for i:=0;i<a;i++{
+//		arr[i] = make([]string,2)
+//	}
+//	for i:=0;i<a;i++ {
+//		fmt.Println(str[i])
+//		newStr := strings.Split(str[i], ":")
+//		ip := newStr[0]
+//		port := newStr[1]
+//		arr[i][0] = ip
+//		arr[i][1] = port
+//	}
+//	fmt.Println(arr,len(arr))
+//	return arr
+//}
+
+func FlagCommand(str []string) [][]string{
 	a := len(str)
 	arr := make([][]string,a)
 	for i:=0;i<a;i++{
@@ -305,8 +323,8 @@ func ChangeConfFile(file,val string,) error {
 }
 
 // get my.cnf
-func Flex(address string) ([][]string,error){
-	arr := FlagCommand(address)
+func Flex(str []string) ([][]string,error){
+	arr := FlagCommand(str)
 	var f *os.File
 	if CheckFileIsExist(filename) {
 		err = os.Remove(filename)
