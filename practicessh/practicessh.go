@@ -321,32 +321,27 @@ func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,
 	if err != nil{
 		return err
 	}
-	fmt.Println("CopyToRemote")
 
 	err = CopyBinaryCommand(sshConn)
 	if err != nil{
 		return err
 	}
-	fmt.Println("CopyBinaryCommand")
 
 	cmdChangeProfile := fmt.Sprintf(`sed -i "%s" /etc/profile`,exportStr)
 	_,_,err = sshConn.ExecuteCommand(cmdChangeProfile)
 	if err != nil{
 		return err
 	}
-	fmt.Println("cmdChangeProfile")
 
 	_,_, err = sshConn.ExecuteCommand(cmdSource)
 	if err != nil{
 		return err
 	}
-	fmt.Println("cmdSource")
 
 	err = InstallTool(sshConn,sLib,iLib)
 	if err != nil{
 		return err
 	}
-	fmt.Println("InstallTool")
 
 	return nil
 }
@@ -421,6 +416,7 @@ func MyMulti(sshConn *linux.MySSHConn,dataDir,DFileA,logErrDir,DFileB,port strin
 	if err != nil{
 		return err
 	}
+
 	setMasterCommand := "mysql -uroot -pmysql < " + setMasterSql
 	_,_,err = sshConn.ExecuteCommand(setMasterCommand)
 	if err != nil{
