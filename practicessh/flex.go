@@ -327,7 +327,6 @@ func Flex(str []string) ([][]string,error){
 		var str = "[mysqld"+arr[i][1]+"]"
 		if i==0 {
 			p := SetValueToStruct(arr[i][0],arr[i][1],b,c,d)
-			fmt.Println("====================")
 			var buffer bytes.Buffer
 			encoder := toml.NewEncoder(&buffer)
 			encoder.Encode(p)

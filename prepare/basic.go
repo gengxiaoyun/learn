@@ -220,7 +220,6 @@ func StartMysql(str []string,user,pass string) error{
 				}
 				log.Println("slave DbConnect succeedd")
 
-
 			} else {
 				err = sshConn.CopyToRemote(srcCnfFile,destCnfFile)
 				if err != nil{
@@ -232,7 +231,7 @@ func StartMysql(str []string,user,pass string) error{
 				}
 				log.Println("my.cnf and mysql.server file copy succeedd")
 
-				err = practicessh.BasicWorkSlave(sshConn,srcFile,baseDir,DFileA,dataDir,DFileB,exportStr,cmdSource,cmdGroup,cmdUser,
+				err = practicessh.BasicWorkSlave(sshConn,srcFile,destFile,DFileA,dataDir,DFileB,exportStr,cmdSource,cmdGroup,cmdUser,
 					DbUser,DbGroup,sLib,iLib,arr[i][1])
 				if err != nil{
 					return err

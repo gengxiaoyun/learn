@@ -74,10 +74,9 @@ func TestBasicWork(t *testing.T) {
 }
 
 func TestBasicWorkSlave(t *testing.T) {
-	var baseDir string
 	hostIP = "192.168.186.138"
 	srcFile = "/home/gengxy/mysql/"
-	baseDir = "/usr/local/mysql/"
+	destFile = "/usr/local/"
 	dataDir = "/mysqldata/mysql3308/data/"
 	port = "3308"
 
@@ -85,7 +84,7 @@ func TestBasicWorkSlave(t *testing.T) {
 	if err != nil{
 		t.Fatal("failed")
 	}
-	err = BasicWorkSlave(sshConn,srcFile,baseDir,DFileA,dataDir,DFileB,exportStr,cmdSource,
+	err = BasicWorkSlave(sshConn,srcFile,destFile,DFileA,dataDir,DFileB,exportStr,cmdSource,
 		cmdGroup,cmdUser,DbUser,DbGroup,sLib,iLib,port)
 	if err != nil{
 		t.Fatal("failed")
