@@ -17,7 +17,7 @@ var(
 const(
 	portNum = 22
 	user = "root"
-	pass = "Abc727364"
+	pass = "root"
 	exportStr = "/export GO111MODULE=on/a\\export PATH=$PATH:/usr/local/mysql/bin"
 	cmdSource = "source /etc/profile"
 	DbUser = "mysql"

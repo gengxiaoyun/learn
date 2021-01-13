@@ -18,7 +18,7 @@ func TestInitMysql(t *testing.T) {
 	hostIP = "192.168.186.137"
 	portNum = 22
 	user = "root"
-	pass = "Abc727364"
+	pass = "root"
 	baseDir = "/usr/local/mysql/"
 	myUser = "mysql"
 	myGroup = "mysql"
