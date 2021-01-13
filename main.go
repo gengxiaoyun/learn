@@ -31,9 +31,6 @@ func main() {
 	r := gin.Default()
 	r.GET("/",func(c *gin.Context){
 		c.JSON(200,c.QueryArray("address"))
-		fmt.Println(c.QueryArray("address"))
-		fmt.Println(c.Query("user"))
-		fmt.Println(c.Query("password"))
 		err = prepare.StartMysql(c.QueryArray("address"),c.Query("user"),c.Query("password"))
 
 	})
