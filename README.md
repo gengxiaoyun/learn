@@ -36,6 +36,6 @@ _<br>$ go run main.go_
 
 ###### Enter the URL in the browser.
 _http://localhost:8080/?address=ip1:port1&address=ip2:port2&address=ip3:port3&user=xxx&password=xxx_
-
+eg: http://localhost:8080/?address=192.168.186.137:3306&address=192.168.186.137:3307&address=192.168.186.138:3308&user=root&password=root
 ###### unit tests
 _$ go test_
