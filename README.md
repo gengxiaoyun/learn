@@ -3,7 +3,7 @@
 This project shows how to install mysql using go 
 ======
 
-go run main.go --address=ip1:port1,ip2:port2,...  --user=root --pass=root
+go run main.go
 ---
 
 ###### first, parse the configuration file, decompress the compressed package and establish ssh connection through the following function.
@@ -32,7 +32,10 @@ srcfile = "/home/gengxy/mysql/mysql.tar.gz"
 
 ###### Enter the project working directory under GOPATH.
 _$ cd $GOPATH/src/learn_
-_<br>$ go run main.go --address=ip1:port1,ip2:port2,...  --user=root --pass=root_
+_<br>$ go run main.go_
+
+###### Enter the URL in the browser.
+_http://localhost:8080/?address=ip1:port1&address=ip2:port2&address=ip3:port3&user=xxx&password=xxx_
 
 ###### unit tests
 _$ go test_
