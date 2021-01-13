@@ -168,25 +168,6 @@ func Init() (err error) {
 	return
 }
 
-//func FlagCommand(address string) [][]string{
-//	str := strings.Split(address,",")
-//	a := len(str)
-//	arr := make([][]string,a)
-//	for i:=0;i<a;i++{
-//		arr[i] = make([]string,2)
-//	}
-//	for i:=0;i<a;i++ {
-//		fmt.Println(str[i])
-//		newStr := strings.Split(str[i], ":")
-//		ip := newStr[0]
-//		port := newStr[1]
-//		arr[i][0] = ip
-//		arr[i][1] = port
-//	}
-//	fmt.Println(arr,len(arr))
-//	return arr
-//}
-
 func FlagCommand(str []string) [][]string{
 	a := len(str)
 	arr := make([][]string,a)
@@ -229,12 +210,12 @@ func GetMemPercent() (string,string,string,error) {
 }
 
 
-func SetValueToStruct(report_host,port,b,c,d string) *Config {
+func SetValueToStruct(reportHost,port,b,c,d string) *Config {
 	socket := "/mysqldata/mysql" + port + "/mysql.sock"
 	logError := "/mysqldata/mysql" + port + "/log/mysqld.log"
 	pidFile := "/mysqldata/mysql" + port + "/mysql.pid"
 	dataDir := "/mysqldata/mysql" + port + "/data"
-	serverId := port + strings.Split(report_host, ".")[2]+strings.Split(report_host, ".")[3]
+	serverId := port + strings.Split(reportHost, ".")[2]+strings.Split(reportHost, ".")[3]
 	logBin := "/mysqllog/mysql" + port + "/binlog/mysql-bin"
 	relayLog := "/mysqllog/mysql" + port + "/relaylog/mysql-relay"
 	p,_ := strconv.Atoi(port)
@@ -254,7 +235,7 @@ func SetValueToStruct(report_host,port,b,c,d string) *Config {
 	v.FieldByName("DataDir").Set(reflect.ValueOf(dataDir))
 	v.FieldByName("Socket").Set(reflect.ValueOf(socket))
 	v.FieldByName("Port").Set(reflect.ValueOf(port))
-	v.FieldByName("ReportHost").Set(reflect.ValueOf(report_host))
+	v.FieldByName("ReportHost").Set(reflect.ValueOf(reportHost))
 	v.FieldByName("ServerId").Set(reflect.ValueOf(serverId))
 	v.FieldByName("LogBin").Set(reflect.ValueOf(logBin))
 	v.FieldByName("RelayLog").Set(reflect.ValueOf(relayLog))

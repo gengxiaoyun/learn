@@ -6,9 +6,7 @@ import (
 	"flag"
 	"runtime"
 	"os"
-	//"github.com/gengxiaoyun/learn/prepare"
-	"learn/prepare"
-
+	"github.com/gengxiaoyun/learn/prepare"
 	"github.com/gin-gonic/gin"
 )
 

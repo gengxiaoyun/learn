@@ -6,7 +6,6 @@ import (
 	"strings"
 	"io"
 	"os"
-
 	"github.com/romberli/go-util/linux"
 	_"github.com/go-sql-driver/mysql"
 	"archive/tar"
@@ -203,8 +202,34 @@ func CheckPath(sshConn *linux.MySSHConn,path,mkCmd string) error {
 	return nil
 }
 
-func CreateSomeDir(sshConn *linux.MySSHConn,dataDir,port,DbUser,DbGroup string) error {
+func CheckUser(sshConn *linux.MySSHConn,DbUser,cmdGroup,cmdUser string) error{
+	checkUser := "cat /etc/passwd|grep " + DbUser
+	_,output,err := sshConn.ExecuteCommand(checkUser)
+	if err != nil{
+		return err
+	}
+	if output == ""{
+		_,_, err = sshConn.ExecuteCommand(cmdGroup)
+		if err != nil{
+			return err
+		}
+		_,_, err = sshConn.ExecuteCommand(cmdUser)
+		if err != nil{
+			return err
+		}
+		return nil
+	}
+	fmt.Println("User exists!")
+	return nil
+}
+
+func CreateSomeDir(sshConn *linux.MySSHConn,dataDir,port,DbUser,
+	DbGroup,cmdGroup,cmdUser string) error {
 	// every time
+	err = CheckUser(sshConn,DbUser,cmdGroup,cmdUser)
+	if err != nil{
+		return err
+	}
 	mkCmd := "sudo mkdir -p " + dataDir
 	err := CheckPath(sshConn,dataDir,mkCmd)
 	if err != nil{
@@ -290,8 +315,8 @@ func CopyBinaryCommand(sshConn *linux.MySSHConn) error{
 }
 
 // copy mysql to /usr/local/, add group and user
-func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmdGroup,cmdUser,
-	DbUser,sLib,iLib string) error{
+func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,
+	sLib,iLib string) error{
 	err = sshConn.CopyToRemote(srcFile,destFile)
 	if err != nil{
 		return err
@@ -323,38 +348,20 @@ func PrepareWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,c
 	}
 	fmt.Println("InstallTool")
 
-	checkUser := "cat /etc/passwd|grep " + DbUser
-	_,output,err := sshConn.ExecuteCommand(checkUser)
-	if err != nil{
-		return err
-	}
-	if output != ""{
-		fmt.Println("User exists!")
-		return nil
-	}
-	_,_, err = sshConn.ExecuteCommand(cmdGroup)
-	if err != nil{
-		return err
-	}
-	_,_, err = sshConn.ExecuteCommand(cmdUser)
-	if err != nil{
-		return err
-	}
-
 	return nil
 }
 
 func BasicWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmdGroup,cmdUser,
 	DbUser,DbGroup,file,sLib,iLib,dataDir,port string) error{
 
-	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup)
+	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup,cmdGroup,cmdUser)
 	if err != nil{
 		return err
 	}
 
 	// copy mysql to /usr/local/, add group and user
 	err = PrepareWork(sshConn,srcFile,destFile,exportStr,
-		cmdSource,cmdGroup,cmdUser,DbUser,sLib,iLib)
+		cmdSource,sLib,iLib)
 	if err != nil {
 		return err
 	}
@@ -369,13 +376,13 @@ func BasicWork(sshConn *linux.MySSHConn,srcFile,destFile,exportStr,cmdSource,cmd
 
 func BasicWorkSlave(sshConn *linux.MySSHConn,srcFile,baseDir,DFileA,dataDir,DFileB,exportStr,cmdSource,
 	cmdGroup,cmdUser,DbUser,DbGroup,sLib,iLib,port string) error{
-	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup)
+	err = CreateSomeDir(sshConn,dataDir,port,DbUser,DbGroup,cmdGroup,cmdUser)
 	if err != nil{
 		return err
 	}
 
 	err = PrepareWork(sshConn,srcFile,baseDir,exportStr,
-		cmdSource,cmdGroup,cmdUser,DbUser,sLib,iLib)
+		cmdSource,sLib,iLib)
 	if err != nil {
 		return err
 	}

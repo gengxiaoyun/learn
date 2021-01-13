@@ -2,13 +2,9 @@ package prepare
 
 import (
 	"log"
-	"flag"
-	//"github.com/gengxiaoyun/learn/mylinux"
-	//"github.com/gengxiaoyun/learn/practicessh"
-	//"github.com/gengxiaoyun/learn/dbsql"
-	"learn/mylinux"
-	"learn/practicessh"
-	"learn/dbsql"
+	"github.com/gengxiaoyun/learn/mylinux"
+	"github.com/gengxiaoyun/learn/practicessh"
+	"github.com/gengxiaoyun/learn/dbsql"
 	"fmt"
 	"time"
 	"os"
@@ -61,17 +57,9 @@ const(
 )
 
 var(
-	//address string
-	//user string
-	//pass string
 	err error
 )
 
-//func init() {
-//	flag.StringVar(&address, "address", "192.168.186.132:3306", "set ip and port")
-//	flag.StringVar(&user, "user", "root", "set username")
-//	flag.StringVar(&pass, "pass", "root", "set password")
-//}
 
 func CheckPath(file string) error{
 	_,err = os.Stat(file)
@@ -92,7 +80,6 @@ func StartMysql(str []string,user,pass string) error{
 		log.Printf("conf.Init() err:%+v", err)
 		return err
 	}
-	//arr,err := practicessh.Flex(address)
 	arr,err := practicessh.Flex(str)
 	if err != nil {
 		log.Println(err.Error())
@@ -194,7 +181,8 @@ func StartMysql(str []string,user,pass string) error{
 			setSlaveCommand := "mysql -uroot -pmysql -S /mysqldata/mysql"+arr[i][1]+"/mysql.sock < " + "/usr/local/slave.sql"
 
 			if arr[i][0] == arr[0][0] {
-				err = practicessh.CreateSomeDir(sshConn,dataDir,arr[i][1],DbUser,DbGroup)
+				err = practicessh.CreateSomeDir(sshConn,dataDir,arr[i][1],
+					DbUser,DbGroup,cmdGroup,cmdUser)
 				if err != nil{
 					return err
 				}

@@ -7,13 +7,13 @@ import (
 func TestChangeSql(t *testing.T) {
 	var (
 		err error
-		report_ip string
-		report_port string
+		reportIp string
+		reportPort string
 	)
-	report_ip = "192.168.186.137"
-	report_port = "3306"
+	reportIp = "192.168.186.137"
+	reportPort = "3306"
 
-	err = ChangeSql(report_ip,report_port)
+	err = ChangeSql(reportIp,reportPort)
 	if err != nil{
 		t.Fatal("failed")
 	}
